@@ -1,0 +1,409 @@
+{
+  "info": {
+    "name": "Equipment Service API",
+    "description": "CRUD endpoints for Categories, Suppliers, and Equipments",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4003/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get all Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Categories by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/categories/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REPLACE_ME_WITH_ID"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Informatique\",\n  \"description\": \"Matériel informatique\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Categories",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Informatique\",\n  \"description\": \"Matériel informatique\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/categories/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REPLACE_ME_WITH_ID"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Categories",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/categories/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "categories",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REPLACE_ME_WITH_ID"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "Get all Suppliers",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/suppliers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "suppliers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Suppliers by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/suppliers/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "suppliers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REPLACE_ME_WITH_ID"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Suppliers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dell Technologies\",\n  \"contactInfo\": \"contact@dell.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/suppliers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "suppliers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Suppliers",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dell Technologies\",\n  \"contactInfo\": \"contact@dell.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/suppliers/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "suppliers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REPLACE_ME_WITH_ID"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Suppliers",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/suppliers/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "suppliers",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REPLACE_ME_WITH_ID"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Equipments",
+      "item": [
+        {
+          "name": "Get all Equipments",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/equipments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "equipments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Equipments by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/equipments/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "equipments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REPLACE_ME_WITH_ID"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Equipments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ordinateur Portable XPS 15\",\n  \"serialNumber\": \"SN-123456789\",\n  \"categoryId\": \"REPLACE_ME_WITH_CATEGORY_ID\",\n  \"supplierId\": \"REPLACE_ME_WITH_SUPPLIER_ID\",\n  \"status\": \"AVAILABLE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/equipments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "equipments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Equipments",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ordinateur Portable XPS 15\",\n  \"serialNumber\": \"SN-123456789\",\n  \"categoryId\": \"REPLACE_ME_WITH_CATEGORY_ID\",\n  \"supplierId\": \"REPLACE_ME_WITH_SUPPLIER_ID\",\n  \"status\": \"AVAILABLE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/equipments/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "equipments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REPLACE_ME_WITH_ID"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Equipments",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/equipments/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "equipments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REPLACE_ME_WITH_ID"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Assignment {
+  id          String    @id @default(uuid())
+  equipmentId String
+  userId      String
+  assignedAt  DateTime  @default(now())
+  status      String    @default("ACTIVE") // ACTIVE | TRANSFERRED | RETURNED
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  transfers   Transfer[]
+  returnInfo  Return?
+}
+
+model Transfer {
+  id            String   @id @default(uuid())
+  assignmentId  String
+  assignment    Assignment @relation(fields: [assignmentId], references: [id])
+  fromUserId    String
+  toUserId      String
+  transferDate  DateTime @default(now())
+  reason        String?
+}
+
+model Return {
+  id            String   @id @default(uuid())
+  assignmentId  String   @unique
+  assignment    Assignment @relation(fields: [assignmentId], references: [id])
+  returnDate    DateTime @default(now())
+  condition     String   // GOOD | DAMAGED | LOST
+  note          String?
+}

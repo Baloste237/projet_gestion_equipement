@@ -1,0 +1,1179 @@
+{
+  "info": {
+    "_postman_id": "73c683b5-31a4-44df-be0a-c21d46e91f1a",
+    "name": "Microservices Integration Tests",
+    "description": "Collection de tests d'intégration pour les 6 microservices de gestion d'équipements avec isolation des données pour runs consécutifs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get(\"test_email\")) {",
+          "    var randomInt = Math.floor(Math.random() * 1000000);",
+          "    pm.collectionVariables.set(\"test_email\", \"admin-\" + randomInt + \"@example.com\");",
+          "    pm.collectionVariables.set(\"dept_name\", \"Informatique Q3 - \" + randomInt);",
+          "    pm.collectionVariables.set(\"category_name\", \"Laptops Intel - \" + randomInt);",
+          "    pm.collectionVariables.set(\"supplier_name\", \"Lenovo France - \" + randomInt);",
+          "    pm.collectionVariables.set(\"equipment_sn\", \"SN-LENOVO-\" + randomInt);",
+          "    pm.collectionVariables.set(\"inventory_title\", \"Audit Inventaire Q3 - \" + randomInt);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Auth Service",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{auth_url}}/health",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Admin User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"securepassword123\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{auth_url}}/auth/register",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Admin User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set(\"jwt_token\", jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set(\"refresh_token\", jsonData.data.refreshToken);",
+                  "    pm.collectionVariables.set(\"auth_user_id\", jsonData.data.user.id);",
+                  "    pm.test(\"Token sauvegardé avec succès\", function () {",
+                  "        pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"securepassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{auth_url}}/auth/login",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Access Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{auth_url}}/auth/refresh",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{auth_url}}/auth/logout",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. User Service",
+      "item": [
+        {
+          "name": "Create Department",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set(\"department_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{dept_name}}\",\n  \"description\": \"Département IT et technique\"\n}"
+            },
+            "url": {
+              "raw": "{{user_url}}/api/departments",
+              "host": [
+                "{{user_url}}"
+              ],
+              "path": [
+                "api",
+                "departments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Departments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/departments",
+              "host": [
+                "{{user_url}}"
+              ],
+              "path": [
+                "api",
+                "departments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Department By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/departments/{{department_id}}",
+              "host": [
+                "{{user_url}}"
+              ],
+              "path": [
+                "api",
+                "departments",
+                "{{department_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Department",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{dept_name}} Modifié\",\n  \"description\": \"Supervision IT et Réseaux\"\n}"
+            },
+            "url": {
+              "raw": "{{user_url}}/api/departments/{{department_id}}",
+              "host": [
+                "{{user_url}}"
+              ],
+              "path": [
+                "api",
+                "departments",
+                "{{department_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set(\"user_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jean\",\n  \"lastName\": \"Dupont\",\n  \"email\": \"{{test_email}}\",\n  \"authUserId\": \"{{auth_user_id}}\",\n  \"role\": \"ADMIN\",\n  \"departmentId\": \"{{department_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{user_url}}/api/users",
+              "host": [
+                "{{user_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/users",
+              "host": [
+                "{{user_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/users/{{user_id}}",
+              "host": [
+                "{{user_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jean-Pierre\",\n  \"lastName\": \"Dupond\"\n}"
+            },
+            "url": {
+              "raw": "{{user_url}}/api/users/{{user_id}}",
+              "host": [
+                "{{user_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\",\n  \"departmentId\": \"{{department_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{user_url}}/api/users/{{user_id}}/role",
+              "host": [
+                "{{user_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}",
+                "role"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03. Equipment Service",
+      "item": [
+        {
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set(\"category_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{category_name}}\",\n  \"description\": \"Ordinateurs portables processeur Intel\"\n}"
+            },
+            "url": {
+              "raw": "{{equipment_url}}/api/categories",
+              "host": [
+                "{{equipment_url}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{equipment_url}}/api/categories",
+              "host": [
+                "{{equipment_url}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Supplier",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set(\"supplier_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{supplier_name}}\",\n  \"contactInfo\": \"contact@lenovo.fr\"\n}"
+            },
+            "url": {
+              "raw": "{{equipment_url}}/api/suppliers",
+              "host": [
+                "{{equipment_url}}"
+              ],
+              "path": [
+                "api",
+                "suppliers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Equipment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set(\"equipment_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ThinkPad L14 Gen 4\",\n  \"serialNumber\": \"{{equipment_sn}}\",\n  \"categoryId\": \"{{category_id}}\",\n  \"supplierId\": \"{{supplier_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{equipment_url}}/api/equipments",
+              "host": [
+                "{{equipment_url}}"
+              ],
+              "path": [
+                "api",
+                "equipments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Equipments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{equipment_url}}/api/equipments",
+              "host": [
+                "{{equipment_url}}"
+              ],
+              "path": [
+                "api",
+                "equipments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Equipment By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{equipment_url}}/api/equipments/{{equipment_id}}",
+              "host": [
+                "{{equipment_url}}"
+              ],
+              "path": [
+                "api",
+                "equipments",
+                "{{equipment_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04. Assignment Service",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{assignment_url}}/health",
+              "host": [
+                "{{assignment_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Assignment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set(\"assignment_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": \"{{equipment_id}}\",\n  \"userId\": \"{{user_id}}\",\n  \"notes\": \"Assignation test matériel bureautique\"\n}"
+            },
+            "url": {
+              "raw": "{{assignment_url}}/api/assignments",
+              "host": [
+                "{{assignment_url}}"
+              ],
+              "path": [
+                "api",
+                "assignments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Assignments",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{assignment_url}}/api/assignments",
+              "host": [
+                "{{assignment_url}}"
+              ],
+              "path": [
+                "api",
+                "assignments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Assignment By ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{assignment_url}}/api/assignments/{{assignment_id}}",
+              "host": [
+                "{{assignment_url}}"
+              ],
+              "path": [
+                "api",
+                "assignments",
+                "{{assignment_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transfer Assignment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"toUserId\": \"{{user_id}}\",\n  \"reason\": \"Changement de poste de travail\"\n}"
+            },
+            "url": {
+              "raw": "{{assignment_url}}/api/assignments/{{assignment_id}}/transfer",
+              "host": [
+                "{{assignment_url}}"
+              ],
+              "path": [
+                "api",
+                "assignments",
+                "{{assignment_id}}",
+                "transfer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Return Equipment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"condition\": \"GOOD\",\n  \"note\": \"Retour équipement régulier\"\n}"
+            },
+            "url": {
+              "raw": "{{assignment_url}}/api/assignments/{{assignment_id}}/return",
+              "host": [
+                "{{assignment_url}}"
+              ],
+              "path": [
+                "api",
+                "assignments",
+                "{{assignment_id}}",
+                "return"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05. Inventory Service",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{inventory_url}}/health",
+              "host": [
+                "{{inventory_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Inventory",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set(\"inventory_id\", jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{inventory_title}}\"\n}"
+            },
+            "url": {
+              "raw": "{{inventory_url}}/inventories",
+              "host": [
+                "{{inventory_url}}"
+              ],
+              "path": [
+                "inventories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Inventories",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{inventory_url}}/inventories",
+              "host": [
+                "{{inventory_url}}"
+              ],
+              "path": [
+                "inventories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Inventory By ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{inventory_url}}/inventories/{{inventory_id}}",
+              "host": [
+                "{{inventory_url}}"
+              ],
+              "path": [
+                "inventories",
+                "{{inventory_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Item to Inventory",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    if (jsonData.data.id) {",
+                  "        pm.collectionVariables.set(\"item_id\", jsonData.data.id);",
+                  "    } else if (jsonData.data.items && jsonData.data.items.length > 0) {",
+                  "        pm.collectionVariables.set(\"item_id\", jsonData.data.items[jsonData.data.items.length - 1].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": \"{{equipment_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{inventory_url}}/inventories/{{inventory_id}}/items",
+              "host": [
+                "{{inventory_url}}"
+              ],
+              "path": [
+                "inventories",
+                "{{inventory_id}}",
+                "items"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check Inventory Item",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"found\": true,\n  \"note\": \"Équipement localisé en bon état lors du contrôle\"\n}"
+            },
+            "url": {
+              "raw": "{{inventory_url}}/inventories/items/{{item_id}}/check",
+              "host": [
+                "{{inventory_url}}"
+              ],
+              "path": [
+                "inventories",
+                "items",
+                "{{item_id}}",
+                "check"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete Inventory",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{inventory_url}}/inventories/{{inventory_id}}/complete",
+              "host": [
+                "{{inventory_url}}"
+              ],
+              "path": [
+                "inventories",
+                "{{inventory_id}}",
+                "complete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06. Audit Service",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{audit_url}}/health",
+              "host": [
+                "{{audit_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{audit_url}}/audit-logs",
+              "host": [
+                "{{audit_url}}"
+              ],
+              "path": [
+                "audit-logs"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "jwt_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "auth_user_id",
+      "value": ""
+    },
+    {
+      "key": "department_id",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    },
+    {
+      "key": "category_id",
+      "value": ""
+    },
+    {
+      "key": "supplier_id",
+      "value": ""
+    },
+    {
+      "key": "equipment_id",
+      "value": ""
+    },
+    {
+      "key": "assignment_id",
+      "value": ""
+    },
+    {
+      "key": "inventory_id",
+      "value": ""
+    },
+    {
+      "key": "item_id",
+      "value": ""
+    }
+  ]
+}

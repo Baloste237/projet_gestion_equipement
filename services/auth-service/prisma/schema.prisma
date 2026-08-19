@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Credential {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  role          String         @default("EMPLOYE") // ADMIN | RESPONSABLE | EMPLOYE | AUDITEUR
+  isActive      Boolean        @default(true)
+  refreshTokens RefreshToken[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model RefreshToken {
+  id           String     @id @default(uuid())
+  token        String     @unique
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id])
+  expiresAt    DateTime
+  revoked      Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+}

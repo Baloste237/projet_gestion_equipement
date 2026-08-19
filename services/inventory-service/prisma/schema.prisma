@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Inventory {
+  id          String          @id @default(uuid())
+  title       String
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  status      String          @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED
+  createdBy   String          // authUserId de l'auditeur/responsable
+  items       InventoryItem[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model InventoryItem {
+  id           String    @id @default(uuid())
+  inventoryId  String
+  inventory    Inventory @relation(fields: [inventoryId], references: [id])
+  equipmentId  String
+  found        Boolean   @default(false)
+  note         String?
+  checkedAt    DateTime?
+
+  @@unique([inventoryId, equipmentId])
+}
