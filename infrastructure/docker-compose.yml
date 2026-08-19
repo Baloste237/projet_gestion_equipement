@@ -1,6 +1,12 @@
+version: "3.9"
+
 services:
+
+  # ==================== INFRASTRUCTURE ====================
+
   rabbitmq:
     image: rabbitmq:3.13-management
+    container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -9,6 +15,235 @@ services:
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  # Une base PostgreSQL par microservice (isolation des données)
+  postgres-auth:
+    image: postgres:16-alpine
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: auth_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_auth:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  postgres-user:
+    image: postgres:16-alpine
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: user_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_user:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  postgres-equipment:
+    image: postgres:16-alpine
+    container_name: postgres-equipment
+    environment:
+      POSTGRES_DB: equipment_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_equipment:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  postgres-assignment:
+    image: postgres:16-alpine
+    container_name: postgres-assignment
+    environment:
+      POSTGRES_DB: assignment_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_assignment:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  postgres-inventory:
+    image: postgres:16-alpine
+    container_name: postgres-inventory
+    environment:
+      POSTGRES_DB: inventory_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_inventory:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  postgres-audit:
+    image: postgres:16-alpine
+    container_name: postgres-audit
+    environment:
+      POSTGRES_DB: audit_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata_audit:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  # ==================== MICROSERVICES ====================
+
+  auth-service:
+    build:
+      context: ../services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    env_file:
+      - ../services/auth-service/.env.docker
+    ports:
+      - "4001:4001"
+    depends_on:
+      - postgres-auth
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: ../services/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    env_file:
+      - ../services/user-service/.env.docker
+    ports:
+      - "4002:4002"
+    volumes:
+      - uploads_avatars:/app/uploads
+    depends_on:
+      - postgres-user
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  equipment-service:
+    build:
+      context: ../services/equipment-service
+      dockerfile: Dockerfile
+    container_name: equipment-service
+    env_file:
+      - ../services/equipment-service/.env.docker
+    ports:
+      - "4003:4003"
+    depends_on:
+      - postgres-equipment
+      - rabbitmq
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  assignment-service:
+    build:
+      context: ../services/assignment-service
+      dockerfile: Dockerfile
+    container_name: assignment-service
+    env_file:
+      - ../services/assignment-service/.env.docker
+    ports:
+      - "4004:4004"
+    depends_on:
+      - postgres-assignment
+      - rabbitmq
+      - user-service
+      - equipment-service
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  inventory-service:
+    build:
+      context: ../services/inventory-service
+      dockerfile: Dockerfile
+    container_name: inventory-service
+    env_file:
+      - ../services/inventory-service/.env.docker
+    ports:
+      - "4005:4005"
+    depends_on:
+      - postgres-inventory
+      - rabbitmq
+      - equipment-service
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  audit-service:
+    build:
+      context: ../services/audit-service
+      dockerfile: Dockerfile
+    container_name: audit-service
+    env_file:
+      - ../services/audit-service/.env.docker
+    ports:
+      - "4006:4006"
+    depends_on:
+      - postgres-audit
+      - rabbitmq
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # ==================== GATEWAY ====================
+
+  gateway:
+    build:
+      context: ../gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    env_file:
+      - ../gateway/.env.docker
+    ports:
+      - "4000:4000"
+    depends_on:
+      - auth-service
+      - user-service
+      - equipment-service
+      - assignment-service
+      - inventory-service
+      - audit-service
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # ==================== FRONTEND ====================
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - gateway
+    networks:
+      - app_network
+    restart: unless-stopped
+
+networks:
+  app_network:
+    driver: bridge
 
 volumes:
+  pgdata_auth:
+  pgdata_user:
+  pgdata_equipment:
+  pgdata_assignment:
+  pgdata_inventory:
+  pgdata_audit:
   rabbitmq_data:
+  uploads_avatars:
