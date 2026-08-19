@@ -1,5 +1,5 @@
 import { equipmentRepository } from "../repositories/equipment.repository";
-import { CreateEquipmentDTO, UpdateEquipmentDTO } from "../types/equipment.type";
+import { CreateEquipmentDTO, UpdateEquipmentDTO, TransferEquipmentDTO } from "../types/equipment.type";
 import { auditPublisher } from "../clients/audit-publisher.client";
 
 export const equipmentService = {
@@ -30,6 +30,23 @@ export const equipmentService = {
       entityId: equipment.id,
       performedBy,
       metadata: { modifiedFields: Object.keys(data) },
+    });
+    return equipment;
+  },
+  transfer: async (id: string, data: TransferEquipmentDTO, performedBy: string = "system") => {
+    const equipment = await equipmentRepository.findById(id);
+    if (!equipment) throw new Error("EQUIPMENT_NOT_FOUND");
+    auditPublisher.publish({
+      action: "EQUIPMENT_TRANSFERRED",
+      routingKey: "equipment.transferred",
+      entityType: "Equipment",
+      entityId: id,
+      performedBy,
+      metadata: {
+        toUserId: data.toUserId,
+        toDepartmentId: data.toDepartmentId,
+        reason: data.reason,
+      },
     });
     return equipment;
   },

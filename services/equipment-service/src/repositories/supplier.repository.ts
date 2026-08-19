@@ -1,5 +1,5 @@
 import { prisma } from "../config/prisma";
-import { CreateSupplierDTO, UpdateSupplierDTO } from "../Types/supplier.type";
+import { CreateSupplierDTO, UpdateSupplierDTO } from "../types/supplier.type";
 
 export const supplierRepository = {
   create: (data: CreateSupplierDTO) => prisma.supplier.create({ data }),

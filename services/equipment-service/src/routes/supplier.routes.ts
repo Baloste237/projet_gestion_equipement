@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { supplierController } from "../Controllers/supplier.controller";
+import { supplierController } from "../controllers/supplier.controller";
 import { validate } from "../middlewares/validate";
 import { createSupplierSchema, updateSupplierSchema } from "../validators/supplier.validator";
 

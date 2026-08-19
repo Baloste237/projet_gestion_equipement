@@ -6,7 +6,7 @@ const swaggerSpec = swaggerJsdoc({
     info: {
       title: "Equipment Service API",
       version: "1.0.0",
-      description: "Gestion des équipements, catégories et fournisseurs",
+      description: "Gestion des équipements, catégories, fournisseurs et transferts",
     },
     servers: [
       { url: "http://localhost:4003", description: "Direct (dev)" },
@@ -46,6 +46,10 @@ const swaggerSpec = swaggerJsdoc({
             serialNumber: { type: "string", example: "SN-2026-001" },
             categoryId: { type: "string", format: "uuid" },
             supplierId: { type: "string", format: "uuid" },
+            status: {
+              type: "string",
+              enum: ["AVAILABLE", "ASSIGNED", "IN_MAINTENANCE", "RETIRED"],
+            },
           },
         },
         UpdateEquipmentDTO: {
@@ -59,6 +63,14 @@ const swaggerSpec = swaggerJsdoc({
             },
             categoryId: { type: "string", format: "uuid" },
             supplierId: { type: "string", format: "uuid" },
+          },
+        },
+        TransferEquipmentDTO: {
+          type: "object",
+          properties: {
+            toUserId: { type: "string", format: "uuid" },
+            toDepartmentId: { type: "string", format: "uuid" },
+            reason: { type: "string", example: "Transfert vers le pôle IT" },
           },
         },
         Category: {
