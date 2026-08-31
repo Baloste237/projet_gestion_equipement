@@ -4,9 +4,9 @@ import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger";
 import { errorHandler } from "./middlewares/error-handler";
-import equipmentRoutes from "./Routes/equipmenT.routes";
-import categoryRoutes from "./Routes/category.routes";
-import supplierRoutes from "./Routes/supplier.routes";
+import equipmentRoutes from "./routes/equipmenT.routes";
+import categoryRoutes from "./routes/category.routes";
+import supplierRoutes from "./routes/supplier.routes";
 
 const app = express();
 

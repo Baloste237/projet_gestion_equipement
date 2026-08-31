@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { equipmentService } from "../Services/equipment.service";
+import { equipmentService } from "../services/equipment.service";
 
 export const equipmentController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
@@ -23,6 +23,12 @@ export const equipmentController = {
   update: async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
       const equipment = await equipmentService.update(req.params.id, req.body);
+      res.status(200).json({ success: true, data: equipment });
+    } catch (err) { next(err); }
+  },
+  transfer: async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    try {
+      const equipment = await equipmentService.transfer(req.params.id, req.body);
       res.status(200).json({ success: true, data: equipment });
     } catch (err) { next(err); }
   },

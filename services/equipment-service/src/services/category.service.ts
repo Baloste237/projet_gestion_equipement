@@ -1,5 +1,5 @@
-import { categoryRepository } from "../Repositories/category.repository";
-import { CreateCategoryDTO, UpdateCategoryDTO } from "../Types/category.type";
+import { categoryRepository } from "../repositories/category.repository";
+import { CreateCategoryDTO, UpdateCategoryDTO } from "../types/category.type";
 
 export const categoryService = {
   create: (data: CreateCategoryDTO) => categoryRepository.create(data),

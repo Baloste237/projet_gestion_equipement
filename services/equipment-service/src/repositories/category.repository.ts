@@ -1,5 +1,5 @@
 import { prisma } from "../config/prisma";
-import { CreateCategoryDTO, UpdateCategoryDTO } from "../Types/category.type";
+import { CreateCategoryDTO, UpdateCategoryDTO } from "../types/category.type";
 
 export const categoryRepository = {
   create: (data: CreateCategoryDTO) => prisma.category.create({ data }),

@@ -1,7 +1,11 @@
 import { Router } from "express";
-import { equipmentController } from "../Controllers/equipment.controller";
+import { equipmentController } from "../controllers/equipment.controller";
 import { validate } from "../middlewares/validate";
-import { createEquipmentSchema, updateEquipmentSchema } from "../validators/equipment.validator";
+import {
+  createEquipmentSchema,
+  updateEquipmentSchema,
+  transferEquipmentSchema,
+} from "../validators/equipment.validator";
 
 const router = Router();
 
@@ -131,6 +135,43 @@ router.get("/:id", equipmentController.getById);
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
 router.patch("/:id", validate(updateEquipmentSchema), equipmentController.update);
+
+/**
+ * @openapi
+ * /api/equipments/{id}/transfer:
+ *   post:
+ *     summary: Transférer un équipement à un utilisateur ou un département
+ *     tags: [Equipments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TransferEquipmentDTO'
+ *     responses:
+ *       200:
+ *         description: Transfert effectué avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data: { $ref: '#/components/schemas/Equipment' }
+ *       404:
+ *         description: Équipement introuvable
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ */
+router.post("/:id/transfer", validate(transferEquipmentSchema), equipmentController.transfer);
 
 /**
  * @openapi

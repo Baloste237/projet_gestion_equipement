@@ -1,5 +1,5 @@
-import { supplierRepository } from "../Repositories/supplier.repository";
-import { CreateSupplierDTO, UpdateSupplierDTO } from "../Types/supplier.type";
+import { supplierRepository } from "../repositories/supplier.repository";
+import { CreateSupplierDTO, UpdateSupplierDTO } from "../types/supplier.type";
 
 export const supplierService = {
   create: (data: CreateSupplierDTO) => supplierRepository.create(data),

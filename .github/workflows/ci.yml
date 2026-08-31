@@ -1,0 +1,40 @@
+name: Microservices CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-test:
+    name: Build & Test Services
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Auth Service Dependencies & Run Unit Tests
+        run: |
+          cd services/auth-service
+          npm ci || npm install
+          npm test
+
+      - name: Verify Equipment Service TypeScript Compilation
+        run: |
+          cd services/equipment-service
+          npm ci || npm install
+          npx tsc -p tsconfig.json
+
+      - name: Verify User Service TypeScript Compilation
+        run: |
+          cd services/user-service
+          npm ci || npm install
+          npx tsc -p tsconfig.json
