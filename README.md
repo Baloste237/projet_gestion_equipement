@@ -54,6 +54,7 @@ L'application s'ouvrira dans votre navigateur, par défaut à l'adresse **`http:
 **Fonctionnalités récentes** (détails dans `frontend/README.md` et les README des services) :
 - **Postes** : `POST/PATCH/DELETE /positions` (user-service), page « Postes » ; suppression refusée si une affectation est active.
 - **Affectations** à un utilisateur, un département ou un poste ; filtres `assigneeType`, `assigneeId`, `status` sur `GET /assignments`.
+- **Affectation groupée** : `POST /assignments/bulk` (1 à 200 équipements, tout ou rien) et sélection multiple dans la liste des équipements ; un équipement n'a qu'une affectation active (index partiel : appliquer les migrations avec `prisma migrate deploy`, voir `services/assignment-service/README.md`).
 - **Import / export des équipements** (CSV, Excel) avec aperçu `POST /equipments/import/preview`.
 - **Tableau de bord** alimenté par les KPIs (`GET /dashboard/kpis`) avec diagrammes d'analyse.
 

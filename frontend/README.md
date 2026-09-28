@@ -17,6 +17,7 @@ Interface React 19 + TypeScript + Vite + Tailwind CSS 3, qui communique avec l'A
 - **Équipements** : import CSV / Excel en trois étapes (fichier, association des colonnes pré-remplie par l'aperçu serveur, rapport avec erreurs par ligne), export CSV / Excel, statut « À compléter » visible et filtrable.
 - **Postes** : création, modification, activation / désactivation et suppression (refusée par le serveur si le poste a une affectation active).
 - **Affectations** : à un utilisateur, un département ou un poste ; la liste affiche le bénéficiaire réel et se filtre par type. Le transfert reste réservé aux affectations à un utilisateur.
+- **Affectation groupée** : cases à cocher dans la liste des équipements (seuls les « Disponible » sont sélectionnables, « tout sélectionner » porte sur les résultats filtrés) puis « Affecter la sélection », ou sélection multiple avec recherche dans la fenêtre « Nouvelle Affectation ». Jusqu'à 200 équipements par opération, tout ou rien : le rapport indique le nombre affecté, ou la liste des équipements refusés (aucune affectation n'est alors créée). Un seul équipement passe par l'appel unitaire.
 
 ## Droits d'accès (état temporaire)
 
