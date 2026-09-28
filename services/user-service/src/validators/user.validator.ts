@@ -7,13 +7,17 @@ export const createUserSchema = z.object({
   authUserId: z.string().uuid(),
   role: z.enum(["ADMIN", "RESPONSABLE", "EMPLOYE", "AUDITEUR"]).optional(),
   departmentId: z.string().uuid().optional(),
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  countryCode: z.string().optional().nullable(),
 });
 
 export const updateProfileSchema = z.object({
   firstName: z.string().min(2).optional(),
   lastName: z.string().min(2).optional(),
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  countryCode: z.string().optional().nullable(),
 });
 
 export const updateRoleSchema = z.object({

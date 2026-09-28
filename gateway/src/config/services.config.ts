@@ -26,6 +26,12 @@ export const SERVICES_CONFIG: ServiceRoute[] = [
     rewritePath: "/api/departments",
   },
   {
+    path: "/positions",
+    target: env.USER_SERVICE_URL,
+    requiresAuth: true,
+    rewritePath: "/api/positions",
+  },
+  {
     path: "/equipments",
     target: env.EQUIPMENT_SERVICE_URL,
     requiresAuth: true,
@@ -55,9 +61,27 @@ export const SERVICES_CONFIG: ServiceRoute[] = [
     requiresAuth: true,
   },
   {
+    path: "/dashboard",
+    target: env.INVENTORY_SERVICE_URL,
+    requiresAuth: true,
+    rewritePath: "/api/dashboard",
+  },
+  {
     path: "/audit-logs",
     target: env.AUDIT_SERVICE_URL,
     requiresAuth: true,
+  },
+  {
+    path: "/uploads/equipments",
+    target: env.EQUIPMENT_SERVICE_URL,
+    requiresAuth: false,
+    rewritePath: "/uploads/equipments",
+  },
+  {
+    path: "/uploads/avatars",
+    target: env.USER_SERVICE_URL,
+    requiresAuth: false,
+    rewritePath: "/uploads/avatars",
   },
 ];
 export default SERVICES_CONFIG;

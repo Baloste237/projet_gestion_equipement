@@ -83,6 +83,19 @@ services/equipment-service/
    - `app.ts` : Centralisation des routes et des middlewares globaux (CORS, Helmet, Error Handler).
    - `server.ts` : Démarrage du serveur sur le port spécifié (4003 par défaut).
 
+## Import et export des équipements
+
+| Méthode | Route | Rôle |
+|---|---|---|
+| `POST` | `/api/equipments/import/preview` | Lit un fichier `.csv` (séparateur `,` ou `;`) ou `.xlsx` (5 Mo max) **sans rien créer** et renvoie `headers`, `rowCount`, `sampleRows` (5 premières lignes), `suggestedMapping` et la liste des `fields` |
+| `POST` | `/api/equipments/import` | Importe le fichier (`file`, multipart) avec un `mapping` JSON facultatif `{ "En-tête du fichier": "champ" }` ; atomique : rien n'est enregistré si une ligne est invalide |
+| `GET` | `/api/equipments/export?format=csv\|xlsx` | Exporte l'inventaire avec les en-têtes reconnus par l'import (le fichier est ré-importable) |
+
+- `suggestedMapping` a exactement le format attendu par le champ `mapping` de l'import : l'interface l'affiche pré-rempli, l'utilisateur corrige les colonnes non reconnues, puis envoie le résultat.
+- Une ligne de `QUANTITE` N crée N équipements ; sans numéro de série ou sans catégorie, un numéro `TMP-…` est généré et le statut est `A_COMPLETER`.
+- L'aperçu et l'import partagent la même lecture du fichier (mêmes règles, mêmes erreurs). Le fichier est envoyé deux fois (aperçu, puis import) et n'est jamais conservé sur le serveur.
+- Tests : `npm test` (`tests/import-export.unit.test.ts`).
+
 ## Prochaines Étapes
 
 - **Authentification et RBAC** : Implémenter les middlewares `authenticate.ts` et `check-permission.ts` lorsque le service d'authentification sera prêt.

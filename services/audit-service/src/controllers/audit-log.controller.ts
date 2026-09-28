@@ -19,4 +19,13 @@ export const auditLogController = {
       next(err);
     }
   },
+
+  create: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const log = await auditLogService.create(req.body);
+      res.status(201).json({ success: true, data: log });
+    } catch (err) {
+      next(err);
+    }
+  },
 };

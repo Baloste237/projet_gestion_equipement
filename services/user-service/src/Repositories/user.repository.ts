@@ -2,11 +2,17 @@ import { prisma } from "../Config/prisma";
 import { CreateUserDTO } from "../Types/user.type";
 
 export const userRepository = {
-  create: (data: CreateUserDTO) =>
-    prisma.user.create({
-      data,
+  create: (data: CreateUserDTO) => {
+    const { departmentId, ...rest } = data as any;
+    const cleanDepartmentId = departmentId && departmentId !== "" ? departmentId : null;
+    return prisma.user.create({
+      data: {
+        ...rest,
+        departmentId: cleanDepartmentId,
+      },
       include: { department: true },
-    }),
+    });
+  },
 
   findAll: () =>
     prisma.user.findMany({
@@ -35,5 +41,23 @@ export const userRepository = {
   delete: (id: string) =>
     prisma.user.delete({
       where: { id },
+    }),
+
+  deactivateByDepartmentId: (departmentId: string) =>
+    prisma.user.updateMany({
+      where: { departmentId },
+      data: { isActive: false, deactivatedAt: new Date() },
+    }),
+
+  reactivateByDepartmentId: (departmentId: string) =>
+    prisma.user.updateMany({
+      where: { departmentId },
+      data: { isActive: true, deactivatedAt: null },
+    }),
+
+  unassignDepartment: (departmentId: string) =>
+    prisma.user.updateMany({
+      where: { departmentId },
+      data: { departmentId: null },
     }),
 };

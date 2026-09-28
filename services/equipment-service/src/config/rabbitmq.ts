@@ -2,6 +2,8 @@ import amqp, { Channel } from "amqplib";
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || "amqp://admin:admin@localhost:5672";
 const EXCHANGE_NAME = "audit_events";
+// Événements métier (KPIs du dashboard), distincts du journal d'audit
+const DOMAIN_EXCHANGE_NAME = "equipment.events";
 
 let connection: any = null;
 let channel: Channel | null = null;
@@ -13,6 +15,7 @@ export const connectRabbitMQ = async (): Promise<Channel> => {
     connection = await amqp.connect(RABBITMQ_URL);
     const ch = await connection.createChannel();
     await ch.assertExchange(EXCHANGE_NAME, "topic", { durable: true });
+    await ch.assertExchange(DOMAIN_EXCHANGE_NAME, "topic", { durable: true });
     channel = ch;
 
     connection.on("error", (err: any) => {
@@ -39,3 +42,4 @@ export const connectRabbitMQ = async (): Promise<Channel> => {
 
 export const getChannel = (): Channel | null => channel;
 export const EXCHANGE = EXCHANGE_NAME;
+export const DOMAIN_EXCHANGE = DOMAIN_EXCHANGE_NAME;

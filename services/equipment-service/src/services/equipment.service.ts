@@ -1,6 +1,7 @@
 import { equipmentRepository } from "../repositories/equipment.repository";
 import { CreateEquipmentDTO, UpdateEquipmentDTO, TransferEquipmentDTO } from "../types/equipment.type";
 import { auditPublisher } from "../clients/audit-publisher.client";
+import { eventPublisher, toEquipmentSnapshot } from "../clients/event-publisher.client";
 
 export const equipmentService = {
   create: async (data: CreateEquipmentDTO, performedBy: string = "system") => {
@@ -13,6 +14,10 @@ export const equipmentService = {
       performedBy,
       metadata: { name: equipment.name, serialNumber: equipment.serialNumber },
     });
+    eventPublisher.publish("equipment.created", {
+      equipmentId: equipment.id,
+      after: toEquipmentSnapshot(equipment),
+    });
     return equipment;
   },
   getAll: () => equipmentRepository.findAll(),
@@ -22,6 +27,7 @@ export const equipmentService = {
     return equipment;
   },
   update: async (id: string, data: UpdateEquipmentDTO, performedBy: string = "system") => {
+    const previous = await equipmentRepository.findById(id);
     const equipment = await equipmentRepository.update(id, data);
     auditPublisher.publish({
       action: "EQUIPMENT_UPDATED",
@@ -31,6 +37,13 @@ export const equipmentService = {
       performedBy,
       metadata: { modifiedFields: Object.keys(data) },
     });
+    if (previous && (previous.status !== equipment.status || previous.categoryId !== equipment.categoryId)) {
+      eventPublisher.publish("equipment.updated", {
+        equipmentId: equipment.id,
+        before: toEquipmentSnapshot(previous),
+        after: toEquipmentSnapshot(equipment),
+      });
+    }
     return equipment;
   },
   transfer: async (id: string, data: TransferEquipmentDTO, performedBy: string = "system") => {
@@ -51,6 +64,7 @@ export const equipmentService = {
     return equipment;
   },
   delete: async (id: string, performedBy: string = "system") => {
+    const previous = await equipmentRepository.findById(id);
     const equipment = await equipmentRepository.delete(id);
     auditPublisher.publish({
       action: "EQUIPMENT_DELETED",
@@ -59,6 +73,12 @@ export const equipmentService = {
       entityId: id,
       performedBy,
     });
+    if (previous) {
+      eventPublisher.publish("equipment.deleted", {
+        equipmentId: id,
+        before: toEquipmentSnapshot(previous),
+      });
+    }
     return equipment;
   },
 };

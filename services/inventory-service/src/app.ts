@@ -4,6 +4,7 @@ import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger";
 import inventoryRoutes from "./routes/inventory.routes";
+import dashboardRoutes from "./routes/dashboard.routes";
 import { errorHandler } from "./middlewares/error-handler";
 
 const app = express();
@@ -21,6 +22,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get("/api-docs.json", (_req, res) => res.json(swaggerSpec));
 
 app.use("/inventories", inventoryRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.use(errorHandler);
 
