@@ -361,6 +361,33 @@ export const inventoryService = {
   complete: (id: string) => api.patch(`/inventories/${id}/complete`),
 };
 
+export interface DashboardKpis {
+  equipments: {
+    total: number;
+    /** Nombre d'équipements par statut (clés : AVAILABLE, ASSIGNED, IN_MAINTENANCE, RETIRED, A_COMPLETER) */
+    byStatus: Record<string, number>;
+    byCategory: { categoryId: string; name: string | null; total: number; available: number }[];
+  };
+  assignments: {
+    active: number;
+    byAssigneeType: Record<AssigneeType, number>;
+  };
+  inventories: { inProgress: number };
+  /** false tant que les compteurs n'ont jamais été alimentés (à reconstruire) */
+  synchronized: boolean;
+  updatedAt: string | null;
+}
+
+export interface KpiRebuildSummary {
+  equipmentCount: number;
+  activeAssignmentCount: number;
+}
+
+export const dashboardService = {
+  getKpis: () => api.get('/dashboard/kpis'),
+  rebuildKpis: () => api.post('/dashboard/kpis/rebuild'),
+};
+
 export interface AuditLog {
   id: string;
   action: string;

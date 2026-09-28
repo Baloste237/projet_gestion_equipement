@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '../../components/layout/AppLayout';
 import {
   type Equipment,
@@ -14,10 +14,11 @@ import { getImageUrl } from '../../utils/imageUrl';
 import { downloadBlob } from '../../utils/download';
 import { getBlobErrorMessage } from '../../utils/apiError';
 import { exportFilename } from '../../utils/importMapping';
-import { EQUIPMENT_STATUSES, EQUIPMENT_STATUS_LABELS } from '../../utils/equipmentStatus';
+import { EQUIPMENT_STATUSES, EQUIPMENT_STATUS_LABELS, parseStatusParam } from '../../utils/equipmentStatus';
 
 export const EquipmentsPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -27,7 +28,8 @@ export const EquipmentsPage: React.FC = () => {
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  // Le tableau de bord ouvre la liste déjà filtrée : /equipments?status=IN_MAINTENANCE
+  const [selectedStatus, setSelectedStatus] = useState<string>(() => parseStatusParam(searchParams.get('status')));
 
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
