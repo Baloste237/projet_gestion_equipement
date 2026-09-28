@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { assignmentController } from "../controllers/assignment.controller";
+import { assignmentController } from "../Controllers/assignment.controller";
 import { validate } from "../middlewares/validate";
 import { authenticate } from "../middlewares/authenticate";
 import { checkPermission } from "../middlewares/check-permission";

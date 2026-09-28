@@ -1,7 +1,13 @@
+export const ASSIGNEE_TYPES = ["USER", "DEPARTMENT", "POSITION"] as const;
+export type AssigneeType = (typeof ASSIGNEE_TYPES)[number];
+
 export interface CreateAssignmentDTO {
   equipmentId: string;
-  userId: string;
+  assigneeType: AssigneeType;
+  assigneeId: string;
   notes?: string;
+  expectedReturnDate?: string;
+  handoverCondition?: string;
 }
 
 export interface CreateTransferDTO {

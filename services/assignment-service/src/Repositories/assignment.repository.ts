@@ -2,8 +2,8 @@ import { prisma } from "../config/prisma";
 import { CreateAssignmentDTO } from "../types/assignment.type";
 
 export const assignmentRepository = {
-  create: (data: CreateAssignmentDTO & { status: string }) =>
-    prisma.assignment.create({ data }),
+  create: (data: Record<string, any>) =>
+    prisma.assignment.create({ data: data as any }),
 
   findAll: () =>
     prisma.assignment.findMany({ include: { transfers: true, returnInfo: true } }),

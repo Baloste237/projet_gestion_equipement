@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { assignmentService } from "../services/assignment.service";
+import { assignmentService } from "../Services/assignment.service";
 
 export const assignmentController = {
   create: async (req: Request, res: Response, next: NextFunction) => {

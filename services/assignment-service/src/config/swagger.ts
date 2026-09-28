@@ -26,7 +26,8 @@ const swaggerSpec = swaggerJsdoc({
           properties: {
             id: { type: "string", format: "uuid" },
             equipmentId: { type: "string", format: "uuid" },
-            userId: { type: "string", format: "uuid" },
+            assigneeType: { type: "string", enum: ["USER", "DEPARTMENT", "POSITION"], example: "DEPARTMENT" },
+            assigneeId: { type: "string", format: "uuid" },
             assignedBy: { type: "string", format: "uuid" },
             startDate: { type: "string", format: "date-time" },
             endDate: { type: "string", format: "date-time", nullable: true },
@@ -41,10 +42,13 @@ const swaggerSpec = swaggerJsdoc({
         },
         CreateAssignmentDTO: {
           type: "object",
-          required: ["equipmentId", "userId"],
+          required: ["equipmentId", "assigneeType", "assigneeId"],
           properties: {
             equipmentId: { type: "string", format: "uuid" },
-            userId: { type: "string", format: "uuid" },
+            assigneeType: { type: "string", enum: ["USER", "DEPARTMENT", "POSITION"], example: "DEPARTMENT" },
+            assigneeId: { type: "string", format: "uuid" },
+            expectedReturnDate: { type: "string", format: "date-time" },
+            handoverCondition: { type: "string", example: "GOOD" },
             notes: { type: "string", example: "Matériel confié pour télétravail" },
           },
         },

@@ -7,17 +7,28 @@ datasource db {
 }
 
 model Assignment {
-  id          String    @id @default(uuid())
-  equipmentId String
-  userId      String
-  assignedAt  DateTime  @default(now())
-  status      String    @default("ACTIVE") // ACTIVE | TRANSFERRED | RETURNED
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                 String    @id @default(uuid())
+  equipmentId        String
+  assigneeType       AssigneeType
+  assigneeId         String
+  assignedAt         DateTime  @default(now())
+  expectedReturnDate DateTime?
+  handoverCondition  String?   @default("GOOD")
+  status             String    @default("ACTIVE") // ACTIVE | TRANSFERRED | RETURNED
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   transfers   Transfer[]
   returnInfo  Return?
+
+  @@index([assigneeType, assigneeId])
+}
+
+enum AssigneeType {
+  USER
+  DEPARTMENT
+  POSITION
 }
 
 model Transfer {
