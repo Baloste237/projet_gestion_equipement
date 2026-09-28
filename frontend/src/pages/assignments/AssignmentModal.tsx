@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   assignmentService,
   departmentService,
@@ -6,6 +6,7 @@ import {
   positionService,
   userService,
   type AssigneeType,
+  type BulkRefusal,
   type Department,
   type Equipment,
   type Position,
@@ -13,12 +14,23 @@ import {
 } from '../../services/api';
 import { Button } from '../../components/ui/Button';
 import { ASSIGNEE_TYPES, ASSIGNEE_TYPE_ICONS, ASSIGNEE_TYPE_LABELS } from '../../utils/assignee';
-import { getApiErrorMessage } from '../../utils/apiError';
+import { getApiErrorDetails, getApiErrorMessage } from '../../utils/apiError';
+import {
+  MAX_BULK_ASSIGNMENTS,
+  describeRefusal,
+  exceedsLimit,
+  filterByQuery,
+  parseBulkRefusals,
+  successMessage,
+} from '../../utils/equipmentSelection';
 
 interface AssignmentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Appelé dès qu'une affectation est créée, pour rafraîchir les listes de la page appelante */
   onSuccess: () => void;
+  /** Équipements retenus à l'ouverture (ex. sélection dans la liste des équipements) */
+  preselectedEquipmentIds?: string[];
 }
 
 const isActive = (entity: { isActive?: boolean; status?: string }) =>
@@ -40,14 +52,23 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  preselectedEquipmentIds,
 }) => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
+  // Lue seulement à l'ouverture : le tableau reçu change à chaque rendu du parent
+  const preselectedRef = useRef(preselectedEquipmentIds);
+  preselectedRef.current = preselectedEquipmentIds;
   // Bénéficiaires actifs, chargés à la demande au premier choix de leur type
   const [users, setUsers] = useState<User[] | null>(null);
   const [departments, setDepartments] = useState<Department[] | null>(null);
   const [positions, setPositions] = useState<Position[] | null>(null);
 
-  const [equipmentId, setEquipmentId] = useState('');
+  // Équipements retenus (dans l'ordre de choix) et recherche dans la liste des disponibles
+  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
+  const [equipmentQuery, setEquipmentQuery] = useState('');
+  // Résultat : succès (nombre affecté) ou refus détaillé de l'affectation groupée
+  const [successCount, setSuccessCount] = useState<number | null>(null);
+  const [refusals, setRefusals] = useState<BulkRefusal[] | null>(null);
   const [assigneeType, setAssigneeType] = useState<AssigneeType>('USER');
   const [assigneeId, setAssigneeId] = useState('');
   const [positionDepartmentId, setPositionDepartmentId] = useState('');
@@ -61,11 +82,32 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [assigneesError, setAssigneesError] = useState<string | null>(null);
 
+  // Charge les équipements disponibles ; les équipements retenus devenus indisponibles sont retirés
+  const loadEquipments = useCallback(async () => {
+    setLoadingData(true);
+    try {
+      const eqRes = await equipmentService.getAll();
+      const allEquipments: Equipment[] = eqRes.data?.data || [];
+      const available = allEquipments.filter((e) => e.status === 'AVAILABLE');
+      setEquipments(available);
+      const availableIds = new Set(available.map((e) => e.id));
+      setSelectedEquipmentIds((previous) => previous.filter((id) => availableIds.has(id)));
+    } catch (err) {
+      console.error('Erreur chargement équipements:', err);
+      setError('Impossible de charger les équipements disponibles.');
+    } finally {
+      setLoadingData(false);
+    }
+  }, []);
+
   // Réinitialisation et chargement des équipements disponibles à l'ouverture
   useEffect(() => {
     if (!isOpen) return;
 
-    setEquipmentId('');
+    setSelectedEquipmentIds(preselectedRef.current ?? []);
+    setEquipmentQuery('');
+    setSuccessCount(null);
+    setRefusals(null);
     setAssigneeType('USER');
     setAssigneeId('');
     setPositionDepartmentId('');
@@ -78,23 +120,8 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
     setDepartments(null);
     setPositions(null);
 
-    const fetchEquipments = async () => {
-      setLoadingData(true);
-      try {
-        const eqRes = await equipmentService.getAll();
-        const allEquipments: Equipment[] = eqRes.data?.data || [];
-        // Only keep AVAILABLE equipments
-        setEquipments(allEquipments.filter((e) => e.status === 'AVAILABLE'));
-      } catch (err) {
-        console.error('Erreur chargement équipements:', err);
-        setError('Impossible de charger les équipements disponibles.');
-      } finally {
-        setLoadingData(false);
-      }
-    };
-
-    fetchEquipments();
-  }, [isOpen]);
+    loadEquipments();
+  }, [isOpen, loadEquipments]);
 
   // Chargement des bénéficiaires du type choisi (une seule fois par type) ; les inactifs sont exclus
   const loadedForType = { USER: users, DEPARTMENT: departments, POSITION: positions }[assigneeType];
@@ -145,7 +172,21 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
     [positions, positionDepartmentId]
   );
 
+  const equipmentById = useMemo(() => new Map(equipments.map((e) => [e.id, e])), [equipments]);
+  const visibleEquipments = useMemo(() => filterByQuery(equipments, equipmentQuery), [equipments, equipmentQuery]);
+
   if (!isOpen) return null;
+
+  const toggleEquipment = (id: string) =>
+    setSelectedEquipmentIds((previous) => (previous.includes(id) ? previous.filter((x) => x !== id) : [...previous, id]));
+  const selectVisibleEquipments = () =>
+    setSelectedEquipmentIds((previous) => [...previous, ...visibleEquipments.map((e) => e.id).filter((id) => !previous.includes(id))]);
+  const clearEquipments = () => setSelectedEquipmentIds([]);
+  const removeRefusedEquipments = () => {
+    const refused = new Set((refusals ?? []).map((r) => r.equipmentId));
+    setSelectedEquipmentIds((previous) => previous.filter((id) => !refused.has(id)));
+    setRefusals(null);
+  };
 
   const handleTypeChange = (type: AssigneeType) => {
     if (type === assigneeType) return;
@@ -158,28 +199,47 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!equipmentId || !assigneeId) {
-      setError('Veuillez sélectionner un équipement et un bénéficiaire.');
+    if (selectedEquipmentIds.length === 0 || !assigneeId) {
+      setError('Veuillez sélectionner au moins un équipement et un bénéficiaire.');
+      return;
+    }
+    if (exceedsLimit(selectedEquipmentIds.length)) {
+      setError(`Maximum ${MAX_BULK_ASSIGNMENTS} équipements par affectation.`);
       return;
     }
 
     setError(null);
+    setRefusals(null);
     setSubmitting(true);
 
+    const common = {
+      assigneeType,
+      assigneeId,
+      expectedReturnDate: expectedReturnDate || undefined,
+      handoverCondition,
+      notes: notes.trim() || undefined,
+    };
+
     try {
-      await assignmentService.create({
-        equipmentId,
-        assigneeType,
-        assigneeId,
-        expectedReturnDate: expectedReturnDate || undefined,
-        handoverCondition,
-        notes: notes.trim() || undefined,
-      });
+      // Un seul équipement : appel unitaire, comme avant ; sinon appel groupé (tout ou rien)
+      if (selectedEquipmentIds.length === 1) {
+        await assignmentService.create({ equipmentId: selectedEquipmentIds[0], ...common });
+      } else {
+        await assignmentService.createBulk({ equipmentIds: selectedEquipmentIds, ...common });
+      }
+      setSuccessCount(selectedEquipmentIds.length);
       onSuccess();
-      onClose();
     } catch (err) {
       console.error('Erreur création affectation:', err);
-      setError(getApiErrorMessage(err, "Erreur lors de la création de l'affectation."));
+      const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code;
+      const refused = parseBulkRefusals(getApiErrorDetails(err));
+      if (code === 'BULK_ASSIGNMENT_REFUSED' && refused.length > 0) {
+        setRefusals(refused);
+      } else {
+        setError(getApiErrorMessage(err, "Erreur lors de la création de l'affectation."));
+      }
+      // Un refus signifie que la liste des disponibles a changé : on la recharge
+      if (code === 'BULK_ASSIGNMENT_REFUSED' || code === 'EQUIPMENT_ALREADY_ASSIGNED') loadEquipments();
     } finally {
       setSubmitting(false);
     }
@@ -209,7 +269,7 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
                 Nouvelle Affectation
               </h2>
               <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Attribuer un équipement disponible à un utilisateur, un département ou un poste
+                Attribuer un ou plusieurs équipements disponibles à un utilisateur, un département ou un poste
               </p>
             </div>
           </div>
@@ -230,39 +290,129 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
           </div>
         )}
 
-        {loadingData ? (
+        {successCount !== null ? (
+          <div role="status" className="py-6 text-center flex flex-col items-center gap-3">
+            <span className="material-symbols-outlined text-5xl text-emerald-400">check_circle</span>
+            <p className="font-headline-sm text-headline-sm font-semibold text-on-surface">{successMessage(successCount)}</p>
+            <p className="text-body-sm text-on-surface-variant">Les listes ont été mises à jour.</p>
+            <Button type="button" onClick={onClose}>
+              Terminer
+            </Button>
+          </div>
+        ) : loadingData ? (
           <div className="py-8 text-center text-on-surface-variant flex flex-col items-center gap-2">
             <span className="material-symbols-outlined animate-spin text-2xl text-primary">sync</span>
             <p className="text-body-sm">Chargement des équipements...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Sélection de l'équipement */}
-            <div>
-              <label className={labelClass} htmlFor="equipmentSelect">
-                Équipement à affecter *
-              </label>
-              <select
-                id="equipmentSelect"
-                value={equipmentId}
-                onChange={(e) => setEquipmentId(e.target.value)}
-                className={selectClass}
-                required
+            {/* Refus de l'affectation groupée : rien n'a été créé */}
+            {refusals && (
+              <div role="alert" className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-lg p-3 text-body-sm space-y-2">
+                <p className="font-semibold flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">error</span>
+                  Aucune affectation n'a été créée : {refusals.length} équipement{refusals.length > 1 ? 's' : ''} refusé
+                  {refusals.length > 1 ? 's' : ''}.
+                </p>
+                <ul className="list-disc pl-5 space-y-0.5 max-h-32 overflow-y-auto">
+                  {refusals.map((refusal) => (
+                    <li key={refusal.equipmentId}>{describeRefusal(refusal)}</li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={removeRefusedEquipments}
+                  className="text-xs underline hover:no-underline font-medium cursor-pointer"
+                >
+                  Retirer ces équipements de la sélection
+                </button>
+              </div>
+            )}
+
+            {/* Sélection des équipements (un ou plusieurs) */}
+            <fieldset>
+              <legend className={labelClass}>
+                Équipements à affecter * ({selectedEquipmentIds.length} retenu{selectedEquipmentIds.length > 1 ? 's' : ''})
+              </legend>
+              <input
+                id="equipmentSearch"
+                type="search"
+                value={equipmentQuery}
+                onChange={(e) => setEquipmentQuery(e.target.value)}
+                placeholder="Rechercher par nom ou numéro de série..."
+                aria-label="Rechercher un équipement disponible"
+                className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-2 px-3 text-body-md text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary mb-2"
+              />
+              <div className="flex items-center gap-3 mb-2 text-xs">
+                <button
+                  type="button"
+                  onClick={selectVisibleEquipments}
+                  disabled={visibleEquipments.length === 0}
+                  className="text-primary underline hover:no-underline disabled:opacity-40 cursor-pointer"
+                >
+                  Tout sélectionner ({visibleEquipments.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={clearEquipments}
+                  disabled={selectedEquipmentIds.length === 0}
+                  className="text-on-surface-variant underline hover:no-underline disabled:opacity-40 cursor-pointer"
+                >
+                  Tout retirer
+                </button>
+              </div>
+              <ul
+                aria-label="Équipements disponibles"
+                className="max-h-44 overflow-y-auto border border-outline-variant rounded-lg divide-y divide-outline-variant/30 bg-surface-container-lowest"
               >
-                <option value="">-- Choisir un équipement disponible --</option>
-                {equipments.map((eq) => (
-                  <option key={eq.id} value={eq.id}>
-                    {eq.name} ({eq.serialNumber})
-                  </option>
+                {visibleEquipments.map((eq) => (
+                  <li key={eq.id}>
+                    <label className="flex items-center gap-3 px-3 py-2 text-body-sm text-on-surface cursor-pointer hover:bg-surface-container">
+                      <input
+                        type="checkbox"
+                        checked={selectedEquipmentIds.includes(eq.id)}
+                        onChange={() => toggleEquipment(eq.id)}
+                        className="w-4 h-4 accent-primary"
+                      />
+                      <span className="flex-1 truncate">{eq.name}</span>
+                      <span className="font-mono text-xs text-on-surface-variant">{eq.serialNumber}</span>
+                    </label>
+                  </li>
                 ))}
-              </select>
-              {equipments.length === 0 && (
-                <p className="text-xs text-amber-400 mt-1 flex items-center gap-1">
+                {visibleEquipments.length === 0 && (
+                  <li className="px-3 py-3 text-xs text-on-surface-variant">
+                    {equipments.length === 0 ? 'Aucun équipement disponible actuellement.' : 'Aucun équipement ne correspond à la recherche.'}
+                  </li>
+                )}
+              </ul>
+
+              {selectedEquipmentIds.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5 max-h-20 overflow-y-auto" aria-label="Équipements retenus">
+                  {selectedEquipmentIds.map((id) => (
+                    <span
+                      key={id}
+                      className="inline-flex items-center gap-1 bg-primary/10 border border-primary/30 text-primary rounded-full pl-2.5 pr-1 py-0.5 text-xs"
+                    >
+                      {equipmentById.get(id)?.name ?? id.slice(0, 8)}
+                      <button
+                        type="button"
+                        onClick={() => toggleEquipment(id)}
+                        aria-label={`Retirer ${equipmentById.get(id)?.name ?? id}`}
+                        className="rounded-full hover:bg-primary/20 p-0.5 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-sm leading-none">close</span>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {exceedsLimit(selectedEquipmentIds.length) && (
+                <p role="alert" className="text-xs text-amber-400 mt-1 flex items-center gap-1">
                   <span className="material-symbols-outlined text-xs">warning</span>
-                  Aucun équipement disponible (statut DISPONIBLE) actuellement.
+                  Maximum {MAX_BULK_ASSIGNMENTS} équipements par affectation : retirez-en pour continuer.
                 </p>
               )}
-            </div>
+            </fieldset>
 
             {/* Type de bénéficiaire */}
             <fieldset>
@@ -416,8 +566,15 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
               <Button type="button" variant="outline" onClick={onClose}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={submitting || equipments.length === 0}>
-                {submitting ? 'Affectation...' : "Créer l'affectation"}
+              <Button
+                type="submit"
+                disabled={submitting || selectedEquipmentIds.length === 0 || exceedsLimit(selectedEquipmentIds.length)}
+              >
+                {submitting
+                  ? 'Affectation...'
+                  : selectedEquipmentIds.length > 1
+                  ? `Affecter ${selectedEquipmentIds.length} équipements`
+                  : "Créer l'affectation"}
               </Button>
             </div>
           </form>

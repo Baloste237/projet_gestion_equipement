@@ -10,6 +10,17 @@ import {
 } from '../../services/api';
 import { EquipmentModal } from './EquipmentModal';
 import { ImportEquipmentsModal } from './ImportEquipmentsModal';
+import { AssignmentModal } from '../assignments/AssignmentModal';
+import {
+  MAX_BULK_ASSIGNMENTS,
+  deselectAll,
+  exceedsLimit,
+  isSelectable,
+  pruneSelection,
+  selectAllSelectable,
+  selectionState,
+  toggleSelection,
+} from '../../utils/equipmentSelection';
 import { getImageUrl } from '../../utils/imageUrl';
 import { downloadBlob } from '../../utils/download';
 import { getBlobErrorMessage } from '../../utils/apiError';
@@ -38,6 +49,10 @@ export const EquipmentsPage: React.FC = () => {
   // Delete state
   const [equipmentToDelete, setEquipmentToDelete] = useState<Equipment | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Sélection multiple pour l'affectation groupée (par identifiant, conservée quand les filtres changent)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
 
   // Import / export state
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -90,7 +105,10 @@ export const EquipmentsPage: React.FC = () => {
         equipmentService.getAll(),
         categoryService.getAll(),
       ]);
-      setEquipments(eqRes.data.data || []);
+      const loaded: Equipment[] = eqRes.data.data || [];
+      setEquipments(loaded);
+      // Un équipement devenu indisponible ou supprimé ne reste pas sélectionné
+      setSelectedIds((previous) => pruneSelection(loaded, previous));
       setCategories(catRes.data.data || []);
     } catch (err: any) {
       console.error('Erreur lors du chargement des équipements:', err);
@@ -136,6 +154,9 @@ export const EquipmentsPage: React.FC = () => {
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
+
+  // État de la case d'en-tête : porte sur les équipements disponibles des résultats affichés
+  const filteredSelectionState = selectionState(filteredEquipments, selectedIds);
 
   const renderStatusBadge = (status: EquipmentStatus) => {
     switch (status) {
@@ -333,12 +354,69 @@ export const EquipmentsPage: React.FC = () => {
           </div>
         )}
 
+        {/* Barre d'action de la sélection */}
+        {selectedIds.size > 0 && (
+          <div
+            role="region"
+            aria-label="Sélection d'équipements"
+            className="bg-primary/10 border border-primary/40 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          >
+            <div className="text-sm text-on-surface">
+              <strong>{selectedIds.size}</strong> équipement{selectedIds.size > 1 ? 's' : ''} sélectionné
+              {selectedIds.size > 1 ? 's' : ''}
+              {exceedsLimit(selectedIds.size) && (
+                <span className="block text-xs text-amber-400 mt-0.5">
+                  Maximum {MAX_BULK_ASSIGNMENTS} équipements par affectation : réduisez la sélection.
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedIds(new Set())}
+                className="px-3 py-1.5 text-sm rounded-lg text-on-surface hover:bg-surface-variant transition-colors"
+              >
+                Tout désélectionner
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAssignOpen(true)}
+                disabled={exceedsLimit(selectedIds.size)}
+                className="px-4 py-1.5 bg-primary text-on-primary font-medium rounded-lg text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-lg">assignment_ind</span>
+                <span>Affecter la sélection</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Table View */}
         <div className="bg-[#1A1A1A] border border-[#262626] rounded-xl overflow-hidden shadow-lg">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-[#262626] bg-[#141414] text-on-surface-variant font-label-md text-xs uppercase tracking-wider">
+                  <th className="py-3.5 pl-4 pr-1 w-10">
+                    <input
+                      type="checkbox"
+                      aria-label="Sélectionner tous les équipements disponibles affichés"
+                      title="Sélectionner tous les équipements disponibles affichés"
+                      checked={filteredSelectionState === 'all'}
+                      ref={(el) => {
+                        if (el) el.indeterminate = filteredSelectionState === 'some';
+                      }}
+                      disabled={filteredSelectionState === 'none' && !filteredEquipments.some(isSelectable)}
+                      onChange={() =>
+                        setSelectedIds((previous) =>
+                          filteredSelectionState === 'all'
+                            ? deselectAll(filteredEquipments, previous)
+                            : selectAllSelectable(filteredEquipments, previous)
+                        )
+                      }
+                      className="w-4 h-4 accent-primary cursor-pointer disabled:cursor-not-allowed"
+                    />
+                  </th>
                   <th className="py-3.5 px-4 font-semibold">Équipement</th>
                   <th className="py-3.5 px-4 font-semibold">Catégorie</th>
                   <th className="py-3.5 px-4 font-semibold">N° de Série</th>
@@ -350,7 +428,7 @@ export const EquipmentsPage: React.FC = () => {
               <tbody className="divide-y divide-[#262626]">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-on-surface-variant">
+                    <td colSpan={7} className="py-12 text-center text-on-surface-variant">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <span className="material-symbols-outlined animate-spin text-3xl text-primary">
                           sync
@@ -361,7 +439,7 @@ export const EquipmentsPage: React.FC = () => {
                   </tr>
                 ) : filteredEquipments.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-on-surface-variant">
+                    <td colSpan={7} className="py-12 text-center text-on-surface-variant">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <span className="material-symbols-outlined text-4xl text-outline-variant">
                           inventory_2
@@ -377,8 +455,27 @@ export const EquipmentsPage: React.FC = () => {
                   filteredEquipments.map((equipment) => (
                     <tr
                       key={equipment.id}
-                      className="hover:bg-[#222222] transition-colors group"
+                      className={`hover:bg-[#222222] transition-colors group ${
+                        selectedIds.has(equipment.id) ? 'bg-primary/5' : ''
+                      }`}
                     >
+                      {/* Sélection pour l'affectation groupée */}
+                      <td className="py-3.5 pl-4 pr-1 w-10">
+                        <input
+                          type="checkbox"
+                          aria-label={`Sélectionner ${equipment.name}`}
+                          title={
+                            isSelectable(equipment)
+                              ? 'Sélectionner pour une affectation groupée'
+                              : 'Seuls les équipements disponibles peuvent être affectés'
+                          }
+                          checked={selectedIds.has(equipment.id)}
+                          disabled={!isSelectable(equipment)}
+                          onChange={() => setSelectedIds((previous) => toggleSelection(previous, equipment.id))}
+                          className="w-4 h-4 accent-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                        />
+                      </td>
+
                       {/* Name */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
@@ -474,6 +571,17 @@ export const EquipmentsPage: React.FC = () => {
             </span>
           </div>
         </div>
+
+        {/* Affectation groupée de la sélection */}
+        <AssignmentModal
+          isOpen={isAssignOpen}
+          onClose={() => setIsAssignOpen(false)}
+          onSuccess={() => {
+            setSelectedIds(new Set());
+            fetchData();
+          }}
+          preselectedEquipmentIds={[...selectedIds]}
+        />
 
         {/* Modal d'import */}
         <ImportEquipmentsModal

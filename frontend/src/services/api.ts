@@ -302,6 +302,23 @@ export interface CreateAssignmentDTO {
   handoverCondition?: string;
 }
 
+export interface CreateBulkAssignmentDTO {
+  equipmentIds: string[];
+  assigneeType: AssigneeType;
+  assigneeId: string;
+  notes?: string;
+  expectedReturnDate?: string;
+  handoverCondition?: string;
+}
+
+/** Équipement refusé par une affectation groupée (aucune affectation n'est alors créée) */
+export interface BulkRefusal {
+  equipmentId: string;
+  name?: string;
+  serialNumber?: string;
+  reason: 'NOT_FOUND' | 'NOT_AVAILABLE';
+}
+
 export interface TransferAssignmentDTO {
   toUserId: string;
   reason?: string;
@@ -322,6 +339,7 @@ export const assignmentService = {
   getAll: () => api.get('/assignments'),
   getById: (id: string) => api.get(`/assignments/${id}`),
   create: (data: CreateAssignmentDTO) => api.post('/assignments', data),
+  createBulk: (data: CreateBulkAssignmentDTO) => api.post('/assignments/bulk', data),
   transfer: (id: string, data: TransferAssignmentDTO) => api.post(`/assignments/${id}/transfer`, data),
   return: (id: string, data: ReturnAssignmentDTO) => api.post(`/assignments/${id}/return`, data),
 };
