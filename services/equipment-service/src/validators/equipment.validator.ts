@@ -5,7 +5,22 @@ export const equipmentStatusEnum = z.enum([
   "ASSIGNED",
   "IN_MAINTENANCE",
   "RETIRED",
+  "A_COMPLETER",
 ]);
+
+const optionalDate = z.coerce.date().optional().nullable();
+
+// Champs descriptifs supplémentaires (tous optionnels)
+export const equipmentDetailsSchema = {
+  barcode: z.string().optional().nullable(),
+  brand: z.string().optional().nullable(),
+  model: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  purchaseDate: optionalDate,
+  purchasePrice: z.coerce.number().nonnegative().optional().nullable(),
+  warrantyEndDate: optionalDate,
+  notes: z.string().optional().nullable(),
+};
 
 export const createEquipmentSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
@@ -13,6 +28,8 @@ export const createEquipmentSchema = z.object({
   categoryId: z.string().uuid("L'ID de catégorie doit être un UUID valide"),
   supplierId: z.string().uuid("L'ID de fournisseur doit être un UUID valide").optional().nullable(),
   status: equipmentStatusEnum.optional().default("AVAILABLE"),
+  imageUrl: z.string().optional().nullable(),
+  ...equipmentDetailsSchema,
 });
 
 export const updateEquipmentSchema = z.object({
@@ -21,6 +38,8 @@ export const updateEquipmentSchema = z.object({
   categoryId: z.string().uuid("L'ID de catégorie doit être un UUID valide").optional(),
   supplierId: z.string().uuid("L'ID de fournisseur doit être un UUID valide").optional().nullable(),
   status: equipmentStatusEnum.optional(),
+  imageUrl: z.string().optional().nullable(),
+  ...equipmentDetailsSchema,
 });
 
 export const transferEquipmentSchema = z.object({

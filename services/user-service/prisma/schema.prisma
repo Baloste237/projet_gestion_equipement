@@ -14,19 +14,42 @@ model User {
   authUserId    String      @unique
   role          String      @default("EMPLOYE")
   avatarUrl     String?
+  phone         String?
+  countryCode   String?
   departmentId  String?
+  positionId    String?
+  status        String      @default("ACTIF")
   isActive      Boolean     @default(true)
   deactivatedAt DateTime?
-  department    Department? @relation(fields: [departmentId], references: [id])
+  department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  position      Position?   @relation(fields: [positionId], references: [id], onDelete: SetNull)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
 
 model Department {
-  id          String   @id @default(uuid())
-  name        String   @unique
+  id          String     @id @default(uuid())
+  name        String     @unique
   description String?
+  status      String     @default("ACTIF")
+  isActive    Boolean    @default(true)
   users       User[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  positions   Position[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Position {
+  id           String     @id @default(uuid())
+  name         String
+  description  String?
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  users        User[]
+  status       String     @default("ACTIF")
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([name, departmentId])
 }

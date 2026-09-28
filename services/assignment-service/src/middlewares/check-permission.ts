@@ -10,9 +10,9 @@ export const checkPermission = (requiredPermission: string) => {
       return next(throwError("UNAUTHENTICATED"));
     }
 
-    // Bypass for ADMIN or check if permissions array includes requiredPermission
+    // Bypass for ADMIN and RESPONSABLE or check if permissions array includes requiredPermission
     const userPermissions: string[] = user.permissions || [];
-    const isAllowed = user.role === "ADMIN" || userPermissions.includes(requiredPermission);
+    const isAllowed = user.role === "ADMIN" || user.role === "RESPONSABLE" || userPermissions.includes(requiredPermission);
 
     if (!isAllowed) {
       return next(throwError("FORBIDDEN"));

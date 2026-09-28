@@ -10,7 +10,8 @@ export const inventoryController = {
     try {
       const inventory = await inventoryService.create({
         title: req.body.title,
-        createdBy: req.user!.id,
+        createdBy: req.user?.id || req.user?.userId || "system",
+        autoPopulate: req.body.autoPopulate !== undefined ? req.body.autoPopulate : true,
       });
       res.status(201).json({ success: true, data: inventory });
     } catch (err) { next(err); }

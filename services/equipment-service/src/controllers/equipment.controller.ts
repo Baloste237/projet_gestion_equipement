@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { equipmentService } from "../services/equipment.service";
+import { equipmentImportService } from "../services/import-export/equipment-import.service";
+import { equipmentExportService } from "../services/import-export/equipment-export.service";
 
 export const equipmentController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
@@ -36,6 +38,52 @@ export const equipmentController = {
     try {
       await equipmentService.delete(req.params.id);
       res.status(204).send();
+    } catch (err) { next(err); }
+  },
+  uploadImage: async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: { code: "NO_FILE", message: "Aucun fichier reçu" },
+        });
+      }
+      const imageUrl = `/uploads/equipments/${req.file.filename}`;
+      const equipment = await equipmentService.update(req.params.id, { imageUrl });
+      res.status(200).json({ success: true, data: equipment });
+    } catch (err) { next(err); }
+  },
+  previewImport: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: { code: "NO_FILE", message: "Aucun fichier reçu" },
+        });
+      }
+      const preview = await equipmentImportService.preview(req.file);
+      res.status(200).json({ success: true, data: preview });
+    } catch (err) { next(err); }
+  },
+  importFile: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: { code: "NO_FILE", message: "Aucun fichier reçu" },
+        });
+      }
+      const result = await equipmentImportService.import(req.file, req.body?.mapping);
+      res.status(201).json({ success: true, data: result });
+    } catch (err) { next(err); }
+  },
+  exportFile: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const format = req.query.format === "xlsx" ? "xlsx" : "csv";
+      const file = await equipmentExportService.export(format);
+      res.setHeader("Content-Type", file.contentType);
+      res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
+      res.status(200).send(file.buffer);
     } catch (err) { next(err); }
   },
 };
