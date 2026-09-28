@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { AppError } from "../errors/app-error";
 
 export const errorHandler = (
   err: any,
@@ -6,6 +7,9 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json({ success: false, code: err.code, message: err.message });
+  }
   // Les services lèvent `new Error("XXX_NOT_FOUND")` : on les expose en 404
   // pour que les autres services puissent distinguer « introuvable » d'une panne.
   if (typeof err?.message === "string" && err.message.endsWith("_NOT_FOUND")) {
