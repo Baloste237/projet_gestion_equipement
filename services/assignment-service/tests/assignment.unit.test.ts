@@ -48,6 +48,20 @@ before(async () => {
   equipmentClient.updateEquipmentStatus = async (id: string, status: string) => {
     statusUpdates.push([id, status]);
   };
+  // Le noyau createMany passe par les appels groupés : mêmes doublures, jamais de vrai audit-service
+  process.env.AUDIT_SERVICE_URL = "http://127.0.0.1:1";
+  (equipmentClient as any).lookup = async (ids: string[]) =>
+    ids.map((id) => ({ id, name: "Portable", serialNumber: "SN-1", status: "AVAILABLE" }));
+  (equipmentClient as any).updateStatusBatch = async (ids: string[], _from: string, to: string) => {
+    ids.forEach((id) => statusUpdates.push([id, to]));
+    return { ok: true };
+  };
+  (repo as any).createMany = async (records: Record<string, any>[]) => {
+    records.forEach((r) => created.push(r));
+    return records.map((r, i) => ({ id: `asg-${i + 1}`, ...r }));
+  };
+  const { auditPublisher } = await import("../src/clients/audit-publisher.client");
+  auditPublisher.publish = (async () => {}) as any;
 });
 
 after(() => fakeUserService.close());

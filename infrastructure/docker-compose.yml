@@ -155,6 +155,9 @@ services:
     container_name: assignment-service
     env_file:
       - ../services/assignment-service/.env.docker
+    environment:
+      # Audit des affectations (envoi HTTP best-effort)
+      AUDIT_SERVICE_URL: http://audit-service:4006
     ports:
       - "4004:4004"
     depends_on:

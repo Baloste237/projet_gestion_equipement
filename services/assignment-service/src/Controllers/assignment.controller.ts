@@ -1,12 +1,28 @@
 import { Request, Response, NextFunction } from "express";
 import { assignmentService } from "../Services/assignment.service";
 import { assignmentFiltersSchema } from "../validators/assignment.validator";
+import { AuthenticatedRequest } from "../middlewares/authenticate";
+
+// Identité de l'auteur, lue dans le jeton vérifié par authenticate
+const authorOf = (req: Request): string => {
+  const id = (req as AuthenticatedRequest).user?.id;
+  return typeof id === "string" && id ? id : "inconnu";
+};
 
 export const assignmentController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const assignment = await assignmentService.create(req.body);
+      const assignment = await assignmentService.create(req.body, authorOf(req));
       res.status(201).json({ success: true, data: assignment });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  createBulk: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const assignments = await assignmentService.createMany(req.body, authorOf(req));
+      res.status(201).json({ success: true, data: { count: assignments.length, assignments } });
     } catch (err) {
       next(err);
     }

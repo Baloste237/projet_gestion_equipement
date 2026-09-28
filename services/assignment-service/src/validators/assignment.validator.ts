@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ASSIGNEE_TYPES, ASSIGNMENT_STATUSES } from "../types/assignment.type";
+import { ASSIGNEE_TYPES, ASSIGNMENT_STATUSES, MAX_BULK_ASSIGNMENTS } from "../types/assignment.type";
 
 // Compatibilité : un ancien payload `{ userId }` est traduit en `{ assigneeType: "USER", assigneeId }`
 const mapLegacyUserId = (body: unknown) => {
@@ -21,6 +21,19 @@ export const createAssignmentSchema = z.preprocess(
     handoverCondition: z.string().optional(),
   })
 );
+
+export const createBulkAssignmentSchema = z.object({
+  assigneeType: z.enum(ASSIGNEE_TYPES),
+  assigneeId: z.string().uuid(),
+  equipmentIds: z
+    .array(z.string().uuid())
+    .min(1, "Au moins un équipement est requis")
+    .max(MAX_BULK_ASSIGNMENTS, `Au plus ${MAX_BULK_ASSIGNMENTS} équipements par affectation groupée`)
+    .refine((ids) => new Set(ids).size === ids.length, "La liste contient des équipements en double"),
+  notes: z.string().optional(),
+  expectedReturnDate: z.string().optional(),
+  handoverCondition: z.string().optional(),
+});
 
 export const createTransferSchema = z.object({
   toUserId: z.string().uuid(),

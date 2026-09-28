@@ -20,6 +20,28 @@ export interface CreateAssignmentDTO {
   handoverCondition?: string;
 }
 
+// Plafond d'équipements par affectation groupée (aligné sur les routes groupées d'equipment-service)
+export const MAX_BULK_ASSIGNMENTS = 200;
+
+export interface CreateBulkAssignmentDTO {
+  equipmentIds: string[];
+  assigneeType: AssigneeType;
+  assigneeId: string;
+  notes?: string;
+  expectedReturnDate?: string;
+  handoverCondition?: string;
+}
+
+export type BulkRefusalReason = "NOT_FOUND" | "NOT_AVAILABLE";
+
+// Équipement refusé lors de la validation d'une affectation groupée
+export interface BulkRefusal {
+  equipmentId: string;
+  name?: string;
+  serialNumber?: string;
+  reason: BulkRefusalReason;
+}
+
 export interface CreateTransferDTO {
   toUserId: string;
   reason?: string;

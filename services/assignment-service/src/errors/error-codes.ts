@@ -16,6 +16,8 @@ export const ERROR_CODES = {
   USER_DEACTIVATED_CANNOT_ASSIGN: { statusCode: 409, message: "Utilisateur désactivé, affectation impossible" },
   DEPARTMENT_INACTIVE_CANNOT_ASSIGN: { statusCode: 409, message: "Département inactif, affectation impossible" },
   POSITION_INACTIVE_CANNOT_ASSIGN: { statusCode: 409, message: "Poste inactif, affectation impossible" },
+  BULK_ASSIGNMENT_REFUSED: { statusCode: 409, message: "Affectation refusée : aucun équipement n'a été affecté" },
+  EQUIPMENT_ALREADY_ASSIGNED: { statusCode: 409, message: "Un équipement est déjà affecté" },
   ASSIGNMENT_ALREADY_RETURNED: { statusCode: 409, message: "Cette affectation est déjà clôturée" },
   ASSIGNMENT_NOT_ACTIVE: { statusCode: 409, message: "L'affectation n'est pas active" },
   USER_SERVICE_UNAVAILABLE: { statusCode: 503, message: "Service utilisateur indisponible" },

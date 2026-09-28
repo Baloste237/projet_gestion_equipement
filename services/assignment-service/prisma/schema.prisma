@@ -23,6 +23,10 @@ model Assignment {
   returnInfo  Return?
 
   @@index([assigneeType, assigneeId])
+  // Index unique PARTIEL "Assignment_equipmentId_active_key" ON (equipmentId) WHERE status = 'ACTIVE' :
+  // un équipement n'a qu'une affectation active. Prisma ne sait pas l'exprimer, il est créé dans la migration
+  // 20260928140000_one_active_assignment_per_equipment ; appliquer avec `prisma migrate deploy` (une
+  // `migrate dev` pourrait proposer de le supprimer).
 }
 
 enum AssigneeType {
