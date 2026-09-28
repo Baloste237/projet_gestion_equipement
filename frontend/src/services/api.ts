@@ -133,7 +133,7 @@ export interface Supplier {
   updatedAt?: string;
 }
 
-export type EquipmentStatus = 'AVAILABLE' | 'ASSIGNED' | 'IN_MAINTENANCE' | 'RETIRED';
+export type EquipmentStatus = 'AVAILABLE' | 'ASSIGNED' | 'IN_MAINTENANCE' | 'RETIRED' | 'A_COMPLETER';
 
 export interface Equipment {
   id: string;
@@ -198,6 +198,29 @@ export const positionService = {
   delete: (id: string) => api.delete(`/positions/${id}`),
 };
 
+export interface ImportPreview {
+  headers: string[];
+  rowCount: number;
+  sampleRows: { row: number; values: Record<string, string | number | boolean | null> }[];
+  /** { "En-tête du fichier": "champ" } pour les colonnes reconnues automatiquement */
+  suggestedMapping: Record<string, string>;
+  fields: string[];
+}
+
+export interface ImportResult {
+  mapping: Record<string, string>;
+  rowCount: number;
+  createdCount: number;
+  toCompleteCount: number;
+}
+
+const importFormData = (file: File, mapping?: Record<string, string>) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (mapping) formData.append('mapping', JSON.stringify(mapping));
+  return formData;
+};
+
 export const equipmentService = {
   getAll: () => api.get('/equipments'),
   getById: (id: string) => api.get(`/equipments/${id}`),
@@ -206,6 +229,11 @@ export const equipmentService = {
   delete: (id: string) => api.delete(`/equipments/${id}`),
   transfer: (id: string, data: { toUserId?: string; toDepartmentId?: string; reason?: string }) =>
     api.post(`/equipments/${id}/transfer`, data),
+  previewImport: (file: File) => api.post('/equipments/import/preview', importFormData(file)),
+  importFile: (file: File, mapping: Record<string, string>) =>
+    api.post('/equipments/import', importFormData(file, mapping)),
+  exportFile: (format: 'csv' | 'xlsx') =>
+    api.get('/equipments/export', { params: { format }, responseType: 'blob' }),
   uploadImage: (id: string, file: File) => {
     const formData = new FormData();
     formData.append('image', file);

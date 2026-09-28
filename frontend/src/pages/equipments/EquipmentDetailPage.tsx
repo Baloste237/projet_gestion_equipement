@@ -79,6 +79,13 @@ export const EquipmentDetailPage: React.FC = () => {
             Hors Service
           </span>
         );
+      case 'A_COMPLETER':
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/30 flex items-center gap-1.5 w-fit">
+            <span className="material-symbols-outlined text-sm">edit_note</span>
+            À compléter
+          </span>
+        );
       default:
         return (
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface-variant text-on-surface-variant flex items-center gap-1.5 w-fit">

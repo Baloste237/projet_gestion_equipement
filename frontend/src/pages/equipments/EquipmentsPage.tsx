@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '../../components/layout/AppLayout';
 import {
@@ -9,7 +9,12 @@ import {
   categoryService,
 } from '../../services/api';
 import { EquipmentModal } from './EquipmentModal';
+import { ImportEquipmentsModal } from './ImportEquipmentsModal';
 import { getImageUrl } from '../../utils/imageUrl';
+import { downloadBlob } from '../../utils/download';
+import { getBlobErrorMessage } from '../../utils/apiError';
+import { exportFilename } from '../../utils/importMapping';
+import { EQUIPMENT_STATUSES, EQUIPMENT_STATUS_LABELS } from '../../utils/equipmentStatus';
 
 export const EquipmentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,6 +36,45 @@ export const EquipmentsPage: React.FC = () => {
   // Delete state
   const [equipmentToDelete, setEquipmentToDelete] = useState<Equipment | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Import / export state
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Ferme le menu d'export au clic à l'extérieur ou sur Échap
+  useEffect(() => {
+    if (!isExportMenuOpen) return;
+    const onPointerDown = (e: MouseEvent) => {
+      if (!exportMenuRef.current?.contains(e.target as Node)) setIsExportMenuOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsExportMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isExportMenuOpen]);
+
+  const handleExport = async (format: 'csv' | 'xlsx') => {
+    setIsExportMenuOpen(false);
+    setExporting(true);
+    setExportError(null);
+    try {
+      const res = await equipmentService.exportFile(format);
+      downloadBlob(res.data as Blob, exportFilename(format));
+    } catch (err) {
+      console.error("Erreur lors de l'export:", err);
+      setExportError(await getBlobErrorMessage(err, "L'export a échoué : aucun fichier n'a été téléchargé."));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -121,6 +165,16 @@ export const EquipmentsPage: React.FC = () => {
             Hors Service
           </span>
         );
+      case 'A_COMPLETER':
+        return (
+          <span
+            className="px-2.5 py-1 rounded-full text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/30 flex items-center gap-1.5 w-fit"
+            title="Numéro de série ou catégorie à renseigner"
+          >
+            <span className="material-symbols-outlined text-sm">edit_note</span>
+            {EQUIPMENT_STATUS_LABELS.A_COMPLETER}
+          </span>
+        );
       default:
         return (
           <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-surface-variant text-on-surface-variant flex items-center gap-1.5 w-fit">
@@ -172,23 +226,94 @@ export const EquipmentsPage: React.FC = () => {
               className="bg-[#0D0D0D] border border-[#333333] text-on-surface text-sm rounded-lg py-2 px-3 focus:outline-none focus:border-primary transition-colors cursor-pointer"
             >
               <option value="">Tous les statuts</option>
-              <option value="AVAILABLE">Disponible</option>
-              <option value="ASSIGNED">Assigné</option>
-              <option value="IN_MAINTENANCE">En Maintenance</option>
-              <option value="RETIRED">Hors Service</option>
+              {EQUIPMENT_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {EQUIPMENT_STATUS_LABELS[status]}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Create Button */}
-          <button
-            type="button"
-            onClick={handleOpenAddModal}
-            className="px-4 py-2 bg-primary text-on-primary font-medium rounded-lg text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-sm shrink-0"
-          >
-            <span className="material-symbols-outlined text-lg">add</span>
-            <span>Enregistrer un Actif</span>
-          </button>
+          {/* Import / Export / Create Buttons */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsImportOpen(true)}
+              className="px-3 py-2 bg-[#0D0D0D] border border-[#333333] text-on-surface font-medium rounded-lg text-sm flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">upload_file</span>
+              <span>Importer</span>
+            </button>
+
+            <div className="relative" ref={exportMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsExportMenuOpen((open) => !open)}
+                disabled={exporting}
+                aria-haspopup="menu"
+                aria-expanded={isExportMenuOpen}
+                className="px-3 py-2 bg-[#0D0D0D] border border-[#333333] text-on-surface font-medium rounded-lg text-sm flex items-center justify-center gap-2 hover:border-primary hover:text-primary transition-colors disabled:opacity-60"
+              >
+                <span className={`material-symbols-outlined text-lg ${exporting ? 'animate-spin' : ''}`}>
+                  {exporting ? 'sync' : 'download'}
+                </span>
+                <span>{exporting ? 'Export...' : 'Exporter'}</span>
+                <span className="material-symbols-outlined text-base">expand_more</span>
+              </button>
+              {isExportMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-1 w-48 bg-[#1A1A1A] border border-[#333333] rounded-lg shadow-xl z-20 overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => handleExport('csv')}
+                    className="w-full px-4 py-2.5 text-sm text-left text-on-surface hover:bg-[#262626] flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-base">csv</span>
+                    CSV (.csv)
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => handleExport('xlsx')}
+                    className="w-full px-4 py-2.5 text-sm text-left text-on-surface hover:bg-[#262626] flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-base">table_view</span>
+                    Excel (.xlsx)
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOpenAddModal}
+              className="px-4 py-2 bg-primary text-on-primary font-medium rounded-lg text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <span className="material-symbols-outlined text-lg">add</span>
+              <span>Enregistrer un Actif</span>
+            </button>
+          </div>
         </div>
+
+        {/* Export Error Alert */}
+        {exportError && (
+          <div role="alert" className="bg-error/10 border border-error/30 text-error p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined">error</span>
+              <span>{exportError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExportError(null)}
+              className="text-xs underline hover:no-underline font-medium"
+            >
+              Fermer
+            </button>
+          </div>
+        )}
 
         {/* Error Alert */}
         {error && (
@@ -347,6 +472,13 @@ export const EquipmentsPage: React.FC = () => {
             </span>
           </div>
         </div>
+
+        {/* Modal d'import */}
+        <ImportEquipmentsModal
+          isOpen={isImportOpen}
+          onClose={() => setIsImportOpen(false)}
+          onImported={fetchData}
+        />
 
         {/* Modal for Add / Edit */}
         <EquipmentModal

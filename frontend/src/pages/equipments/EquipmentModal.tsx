@@ -320,6 +320,7 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
                       <option value="ASSIGNED">Assigné (En utilisation)</option>
                       <option value="IN_MAINTENANCE">En Maintenance</option>
                       <option value="RETIRED">Retiré (Hors service)</option>
+                      <option value="A_COMPLETER">À compléter (informations manquantes)</option>
                     </select>
                     <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant text-lg pointer-events-none">
                       expand_more
