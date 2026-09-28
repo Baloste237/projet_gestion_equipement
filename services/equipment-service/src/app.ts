@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import path from "path";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger";
 import { errorHandler } from "./middlewares/error-handler";
@@ -20,6 +21,9 @@ app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 // Documentation Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get("/api-docs.json", (_req, res) => res.json(swaggerSpec));
+
+// Static files for uploaded equipment images
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // Routes
 app.use("/api/equipments", equipmentRoutes);

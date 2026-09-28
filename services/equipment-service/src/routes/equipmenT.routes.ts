@@ -6,8 +6,70 @@ import {
   updateEquipmentSchema,
   transferEquipmentSchema,
 } from "../validators/equipment.validator";
+import { uploadEquipmentImage, uploadImportFile } from "../config/upload";
 
 const router = Router();
+
+/**
+ * @openapi
+ * /api/equipments/import:
+ *   post:
+ *     summary: Importer des équipements depuis un fichier CSV ou Excel
+ *     description: |
+ *       Les en-têtes courants (NOM, NUMERO DE SERIE, CODE BAR, MARQUE, MODELE, EMPLACEMENT, DATE ACHAT,
+ *       PRIX, FIN GARANTIE, CATEGORIE, FOURNISSEUR, QUANTITE…) sont reconnus automatiquement ;
+ *       `mapping` permet d'associer d'autres en-têtes. Une ligne de QUANTITE N crée N équipements.
+ *       Sans numéro de série ou catégorie, un numéro TMP-… est généré et le statut vaut A_COMPLETER.
+ *       L'import est atomique : aucune ligne n'est enregistrée si le fichier contient une erreur.
+ *     tags: [Equipments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Fichier .csv (séparateur , ou ;) ou .xlsx, 5 Mo max
+ *               mapping:
+ *                 type: string
+ *                 description: 'JSON { "En-tête du fichier": "champ" }. Champs : name, serialNumber, barcode, brand, model, location, purchaseDate, purchasePrice, warrantyEndDate, notes, category, supplier, quantity'
+ *                 example: '{"Réf. constructeur": "serialNumber", "Site": "location"}'
+ *     responses:
+ *       201:
+ *         description: Équipements créés (createdCount, toCompleteCount, mapping, equipments)
+ *       400:
+ *         description: Fichier manquant, illisible ou lignes invalides (détail par ligne dans `details`)
+ */
+router.post("/import", uploadImportFile.single("file"), equipmentController.importFile);
+
+/**
+ * @openapi
+ * /api/equipments/export:
+ *   get:
+ *     summary: Exporter l'inventaire des équipements (CSV ou Excel)
+ *     description: Les en-têtes sont ceux reconnus par l'import, le fichier peut donc être ré-importé.
+ *     tags: [Equipments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: format
+ *         required: false
+ *         schema: { type: string, enum: [csv, xlsx], default: csv }
+ *     responses:
+ *       200:
+ *         description: Fichier téléchargé (CSV séparé par « ; » en UTF-8, ou classeur .xlsx)
+ *         content:
+ *           text/csv: {}
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
+ */
+router.get("/export", equipmentController.exportFile);
 
 /**
  * @openapi
@@ -196,5 +258,38 @@ router.post("/:id/transfer", validate(transferEquipmentSchema), equipmentControl
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
 router.delete("/:id", equipmentController.delete);
+
+/**
+ * @openapi
+ * /api/equipments/{id}/image:
+ *   post:
+ *     summary: Téléverser l'image d'un équipement
+ *     tags: [Equipments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Image téléversée avec succès
+ *       400:
+ *         description: Fichier manquant ou invalide
+ *       404:
+ *         description: Équipement introuvable
+ */
+router.post("/:id/image", uploadEquipmentImage.single("image"), equipmentController.uploadImage);
 
 export default router;
