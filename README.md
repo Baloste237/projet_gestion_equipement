@@ -49,6 +49,14 @@ npm run dev
 ```
 L'application s'ouvrira dans votre navigateur, par défaut à l'adresse **`http://localhost:5173`**.
 
+> **Droits d'accès (état temporaire)** : tous les utilisateurs authentifiés ont les mêmes droits, quel que soit leur rôle. La séparation par rôle sera réintroduite dans un changement ultérieur. Les permissions étant portées par le jeton, il faut se **reconnecter** après une mise à jour pour les recevoir.
+
+**Fonctionnalités récentes** (détails dans `frontend/README.md` et les README des services) :
+- **Postes** : `POST/PATCH/DELETE /positions` (user-service), page « Postes » ; suppression refusée si une affectation est active.
+- **Affectations** à un utilisateur, un département ou un poste ; filtres `assigneeType`, `assigneeId`, `status` sur `GET /assignments`.
+- **Import / export des équipements** (CSV, Excel) avec aperçu `POST /equipments/import/preview`.
+- **Tableau de bord** alimenté par les KPIs (`GET /dashboard/kpis`) avec diagrammes d'analyse.
+
 ---
 
 ## 🧪 Exécution des Tests d'Intégration (Postman / Newman)

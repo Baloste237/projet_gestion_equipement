@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# Frontend EQUIP-CORE
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Interface React 19 + TypeScript + Vite + Tailwind CSS 3, qui communique avec l'API Gateway (`VITE_API_URL`, `http://localhost:4000` par défaut).
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Commande | Rôle |
+|---|---|
+| `npm run dev` | Serveur de développement (`http://localhost:5173`) |
+| `npm run build` | Contrôle des types (`tsc -b`) puis build de production |
+| `npm run lint` | Oxlint |
+| `npm test` | Tests unitaires de la logique pure (`tsx --test tests/**/*.test.ts`) |
 
-## React Compiler
+## Fonctionnalités principales
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Tableau de bord** : indicateurs issus de `GET /dashboard/kpis` et diagrammes (statut, catégorie, type de bénéficiaire, département, évolution des affectations sur la période choisie). Chaque diagramme a une légende chiffrée, un détail au survol et au clavier, et un état vide / chargement / erreur. Un clic sur un statut ouvre la liste des équipements déjà filtrée (`/equipments?status=…`). La fraîcheur des KPIs est affichée et leur reconstruction est accessible à tous.
+- **Équipements** : import CSV / Excel en trois étapes (fichier, association des colonnes pré-remplie par l'aperçu serveur, rapport avec erreurs par ligne), export CSV / Excel, statut « À compléter » visible et filtrable.
+- **Postes** : création, modification, activation / désactivation et suppression (refusée par le serveur si le poste a une affectation active).
+- **Affectations** : à un utilisateur, un département ou un poste ; la liste affiche le bénéficiaire réel et se filtre par type. Le transfert reste réservé aux affectations à un utilisateur.
 
-## Expanding the Oxlint configuration
+## Droits d'accès (état temporaire)
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+Tous les utilisateurs authentifiés ont les mêmes droits : l'interface ne masque aucune action selon le rôle. La séparation des fonctionnalités par rôle est prévue dans un changement ultérieur.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## Organisation
+
+```text
+src/
+├── components/charts/   # Diagrammes SVG sans dépendance (barres, anneau, évolution)
+├── components/ui/       # Composants génériques (boutons, modales)
+├── pages/               # Une page par écran (dashboard, equipments, positions, assignments…)
+├── services/api.ts      # Client axios et types de l'API
+└── utils/               # Logique pure testée (agrégations, mapping d'import, bénéficiaires)
+tests/                   # Tests unitaires de utils/
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Notes
+
+- Les envois de fichiers doivent forcer `Content-Type: multipart/form-data` : l'instance axios envoie du JSON par défaut.
+- Le style repose sur Tailwind 3 (`tailwind.config.js`, directives `@tailwind`). Ne pas passer `tailwindcss` en v4 sans migrer la configuration.
