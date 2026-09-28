@@ -27,6 +27,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, subtitle 
     { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
     { label: 'Utilisateurs', path: '/users', icon: 'group' },
     { label: 'Départements', path: '/departments', icon: 'lan' },
+    { label: 'Postes', path: '/positions', icon: 'badge' },
     { label: 'Équipements', path: '/equipments', icon: 'construction' },
     { label: 'Affectations', path: '/assignments', icon: 'assignment_ind' },
     { label: 'Inventaire', path: '/inventories', icon: 'inventory_2' },

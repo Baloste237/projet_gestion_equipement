@@ -97,6 +97,26 @@ export interface CreateDepartmentDTO {
   isActive?: boolean;
 }
 
+export interface Position {
+  id: string;
+  name: string;
+  description?: string | null;
+  departmentId: string;
+  department?: Pick<Department, 'id' | 'name' | 'isActive' | 'status'>;
+  status?: 'ACTIF' | 'INACTIF';
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreatePositionDTO {
+  name: string;
+  departmentId: string;
+  description?: string | null;
+  status?: 'ACTIF' | 'INACTIF';
+  isActive?: boolean;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -168,6 +188,14 @@ export const departmentService = {
   create: (data: CreateDepartmentDTO) => api.post('/departments', data),
   update: (id: string, data: Partial<CreateDepartmentDTO>) => api.patch(`/departments/${id}`, data),
   delete: (id: string) => api.delete(`/departments/${id}`),
+};
+
+export const positionService = {
+  getAll: (departmentId?: string) => api.get('/positions', { params: departmentId ? { departmentId } : undefined }),
+  getById: (id: string) => api.get(`/positions/${id}`),
+  create: (data: CreatePositionDTO) => api.post('/positions', data),
+  update: (id: string, data: Partial<CreatePositionDTO>) => api.patch(`/positions/${id}`, data),
+  delete: (id: string) => api.delete(`/positions/${id}`),
 };
 
 export const equipmentService = {

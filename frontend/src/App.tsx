@@ -4,6 +4,7 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { UsersPage } from './pages/users/UsersPage';
 import { DepartmentsPage } from './pages/departments/DepartmentsPage';
+import { PositionsPage } from './pages/positions/PositionsPage';
 import { EquipmentsPage } from './pages/equipments/EquipmentsPage';
 import { EquipmentDetailPage } from './pages/equipments/EquipmentDetailPage';
 import { AssignmentsPage } from './pages/assignments/AssignmentsPage';
@@ -21,6 +22,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/departments" element={<DepartmentsPage />} />
+        <Route path="/positions" element={<PositionsPage />} />
         <Route path="/equipments" element={<EquipmentsPage />} />
         <Route path="/equipments/:id" element={<EquipmentDetailPage />} />
         <Route path="/assignments" element={<AssignmentsPage />} />
