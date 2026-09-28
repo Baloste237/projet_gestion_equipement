@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
-import { assignmentService, type Assignment } from '../../services/api';
+import { assignmentService, type Assignment, type AssigneeType } from '../../services/api';
 import { AssignmentModal } from './AssignmentModal';
 import { ReturnModal } from './ReturnModal';
 import { TransferModal } from './TransferModal';
 import { Button } from '../../components/ui/Button';
+import {
+  ASSIGNEE_TYPES,
+  ASSIGNEE_TYPE_LABELS,
+  TRANSFER_UNAVAILABLE_HINT,
+  assigneeSearchText,
+  canTransfer,
+  describeAssignee,
+} from '../../utils/assignee';
 
 export const AssignmentsPage: React.FC = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -14,6 +22,7 @@ export const AssignmentsPage: React.FC = () => {
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
+  const [typeFilter, setTypeFilter] = useState<'ALL' | AssigneeType>('ALL');
 
   // Modals state
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -65,24 +74,24 @@ export const AssignmentsPage: React.FC = () => {
   // Filtered List
   const filteredAssignments = useMemo(() => {
     return assignments.filter((asgn) => {
-      const userName = asgn.user ? `${asgn.user.firstName || ''} ${asgn.user.lastName || ''}`.toLowerCase() : '';
-      const userEmail = asgn.user?.email?.toLowerCase() || '';
+      const assigneeText = assigneeSearchText(asgn);
       const eqName = asgn.equipment?.name?.toLowerCase() || '';
       const eqSerial = asgn.equipment?.serialNumber?.toLowerCase() || '';
 
-      const query = searchTerm.toLowerCase();
+      const query = searchTerm.trim().toLowerCase();
       const matchesSearch =
-        userName.includes(query) ||
-        userEmail.includes(query) ||
+        assigneeText.includes(query) ||
         eqName.includes(query) ||
         eqSerial.includes(query);
 
       const matchesStatus =
         statusFilter === 'ALL' || asgn.status === statusFilter;
 
-      return matchesSearch && matchesStatus;
+      const matchesType = typeFilter === 'ALL' || (asgn.assigneeType ?? 'USER') === typeFilter;
+
+      return matchesSearch && matchesStatus && matchesType;
     });
-  }, [assignments, searchTerm, statusFilter]);
+  }, [assignments, searchTerm, statusFilter, typeFilter]);
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return 'N/A';
@@ -117,7 +126,7 @@ export const AssignmentsPage: React.FC = () => {
               Affectations Actives
             </h2>
             <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Attribution des équipements, suivis des retours et transferts entre collaborateurs.
+              Attribution des équipements à des utilisateurs, départements ou postes, suivi des retours et transferts entre utilisateurs.
             </p>
           </div>
 
@@ -183,7 +192,8 @@ export const AssignmentsPage: React.FC = () => {
               </span>
               <input
                 type="text"
-                placeholder="Rechercher utilisateur ou équipement..."
+                placeholder="Rechercher bénéficiaire ou équipement..."
+                aria-label="Rechercher un bénéficiaire ou un équipement"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-2 pl-9 pr-3 text-body-md text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary"
@@ -199,6 +209,20 @@ export const AssignmentsPage: React.FC = () => {
               <option value="ACTIVE">ACTIVES</option>
               <option value="TRANSFERRED">TRANSFÉRÉES</option>
               <option value="RETURNED">RESTITUÉES</option>
+            </select>
+
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as 'ALL' | AssigneeType)}
+              aria-label="Filtrer par type de bénéficiaire"
+              className="bg-surface-container-lowest border border-outline-variant rounded-lg py-2 px-3 text-body-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer"
+            >
+              <option value="ALL">Tous les bénéficiaires</option>
+              {ASSIGNEE_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {ASSIGNEE_TYPE_LABELS[type]}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -243,8 +267,7 @@ export const AssignmentsPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-outline-variant/30 text-body-sm text-on-surface">
                   {filteredAssignments.map((asgn) => {
-                    const userName = asgn.user ? `${asgn.user.firstName || ''} ${asgn.user.lastName || ''}`.trim() || 'Utilisateur' : 'Utilisateur';
-                    const deptName = asgn.user?.department?.name || 'Département N/A';
+                    const assignee = describeAssignee(asgn);
                     const eqName = asgn.equipment?.name || 'Équipement';
                     const eqSerial = asgn.equipment?.serialNumber || asgn.equipmentId.substring(0, 8);
                     const overdue = asgn.status === 'ACTIVE' && isOverdue(asgn.expectedReturnDate);
@@ -254,16 +277,31 @@ export const AssignmentsPage: React.FC = () => {
                         {/* User Cell */}
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-primary/20 border border-primary/40 text-primary flex items-center justify-center font-bold text-sm shrink-0">
-                              {asgn.user?.avatarUrl ? (
-                                <img src={asgn.user.avatarUrl} alt={userName} className="w-full h-full rounded-full object-cover" />
+                            <div
+                              className={`w-9 h-9 rounded-full border flex items-center justify-center font-bold text-sm shrink-0 ${
+                                assignee.available
+                                  ? 'bg-primary/20 border-primary/40 text-primary'
+                                  : 'bg-surface-container-high border-outline-variant text-outline'
+                              }`}
+                            >
+                              {assignee.avatarUrl ? (
+                                <img src={assignee.avatarUrl} alt={assignee.name} className="w-full h-full rounded-full object-cover" />
+                              ) : assignee.type === 'USER' && assignee.available ? (
+                                assignee.name.charAt(0).toUpperCase()
                               ) : (
-                                userName.charAt(0).toUpperCase()
+                                <span className="material-symbols-outlined text-lg">{assignee.icon}</span>
                               )}
                             </div>
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-on-surface">{userName}</span>
-                              <span className="text-xs text-on-surface-variant">{deptName}</span>
+                            <div className="flex flex-col min-w-0">
+                              <span className={`font-semibold truncate ${assignee.available ? 'text-on-surface' : 'text-outline italic'}`}>
+                                {assignee.name}
+                              </span>
+                              <span className="text-xs text-on-surface-variant flex items-center gap-1.5">
+                                <span className="px-1.5 py-px rounded border border-outline-variant/60 bg-surface-container-high text-[10px] uppercase tracking-wide">
+                                  {assignee.typeLabel}
+                                </span>
+                                {assignee.type !== 'DEPARTMENT' && <span className="truncate">{assignee.subtitle}</span>}
+                              </span>
                             </div>
                           </div>
                         </td>
@@ -330,15 +368,26 @@ export const AssignmentsPage: React.FC = () => {
                         <td className="py-3 px-4 text-right">
                           {asgn.status === 'ACTIVE' ? (
                             <div className="flex items-center justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedForTransfer(asgn)}
-                                className="px-2.5 py-1.5 rounded-lg bg-surface-container border border-outline-variant text-body-sm font-medium hover:bg-surface-variant text-on-surface transition-colors flex items-center gap-1 cursor-pointer"
-                                title="Transférer à un autre collaborateur"
-                              >
-                                <span className="material-symbols-outlined text-base">swap_horiz</span>
-                                <span className="hidden sm:inline">Transférer</span>
-                              </button>
+                              {canTransfer(asgn) ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedForTransfer(asgn)}
+                                  className="px-2.5 py-1.5 rounded-lg bg-surface-container border border-outline-variant text-body-sm font-medium hover:bg-surface-variant text-on-surface transition-colors flex items-center gap-1 cursor-pointer"
+                                  title="Transférer à un autre collaborateur"
+                                >
+                                  <span className="material-symbols-outlined text-base">swap_horiz</span>
+                                  <span className="hidden sm:inline">Transférer</span>
+                                </button>
+                              ) : (
+                                <span
+                                  className="px-1 text-outline cursor-help"
+                                  title={TRANSFER_UNAVAILABLE_HINT}
+                                  aria-label={TRANSFER_UNAVAILABLE_HINT}
+                                  role="img"
+                                >
+                                  <span className="material-symbols-outlined text-base align-middle">info</span>
+                                </span>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => setSelectedForReturn(asgn)}

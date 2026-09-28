@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { assignmentService, userService, type Assignment, type User } from '../../services/api';
 import { Button } from '../../components/ui/Button';
+import { describeAssignee } from '../../utils/assignee';
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
           const res = await userService.getAll();
           const allUsers: User[] = res.data?.data || [];
           // Filter out current user and inactive users
-          setUsers(allUsers.filter((u) => u.id !== assignment.userId && u.isActive !== false && u.status !== 'INACTIF'));
+          setUsers(allUsers.filter((u) => u.id !== assignment.assigneeId && u.isActive !== false && u.status !== 'INACTIF'));
         } catch (err) {
           console.error('Erreur chargement utilisateurs:', err);
           setError('Impossible de charger la liste des collaborateurs.');
@@ -51,7 +52,8 @@ export const TransferModal: React.FC<TransferModalProps> = ({
 
   const equipmentName = assignment.equipment?.name || 'Équipement';
   const serialNumber = assignment.equipment?.serialNumber || assignment.equipmentId;
-  const currentUserName = assignment.user ? `${assignment.user.firstName || ''} ${assignment.user.lastName || ''}`.trim() : assignment.userId;
+  const currentHolder = describeAssignee(assignment);
+  const currentUserName = currentHolder.name;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

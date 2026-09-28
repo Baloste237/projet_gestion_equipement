@@ -223,10 +223,24 @@ export const categoryService = {
   create: (data: { name: string; description?: string }) => api.post('/categories', data),
 };
 
+export type AssigneeType = 'USER' | 'DEPARTMENT' | 'POSITION';
+
+/** Bénéficiaire résolu par assignment-service (utilisateur, département ou poste) */
+export type AssigneeInfo = Partial<User> & {
+  id: string;
+  name?: string;
+  isActive?: boolean;
+  department?: { id: string; name: string } | null;
+};
+
 export interface Assignment {
   id: string;
   equipmentId: string;
-  userId: string;
+  assigneeType: AssigneeType;
+  assigneeId: string;
+  /** Ancien champ, conservé pour compatibilité : n'est plus renvoyé par le backend */
+  userId?: string;
+  assignee?: AssigneeInfo | null;
   assignedAt: string;
   expectedReturnDate?: string | null;
   handoverCondition?: string | null;
@@ -247,7 +261,8 @@ export interface Assignment {
 
 export interface CreateAssignmentDTO {
   equipmentId: string;
-  userId: string;
+  assigneeType: AssigneeType;
+  assigneeId: string;
   notes?: string;
   expectedReturnDate?: string;
   handoverCondition?: string;

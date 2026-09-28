@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { assignmentService, type Assignment } from '../../services/api';
 import { Button } from '../../components/ui/Button';
+import { describeAssignee } from '../../utils/assignee';
 
 interface ReturnModalProps {
   isOpen: boolean;
@@ -32,7 +33,8 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({
 
   const equipmentName = assignment.equipment?.name || 'Équipement';
   const serialNumber = assignment.equipment?.serialNumber || assignment.equipmentId;
-  const userName = assignment.user ? `${assignment.user.firstName || ''} ${assignment.user.lastName || ''}`.trim() : assignment.userId;
+  const holder = describeAssignee(assignment);
+  const userName = `${holder.name} (${holder.typeLabel})`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
