@@ -10,6 +10,8 @@ interface ChartCardProps {
   /** true : affiche `emptyMessage` au lieu du graphique */
   isEmpty?: boolean;
   emptyMessage?: string;
+  /** true pendant le premier chargement : évite d'afficher des zéros qui passeraient pour des valeurs réelles */
+  loading?: boolean;
   /** Message d'erreur : remplace le graphique, sans jamais afficher de zéros trompeurs */
   errorMessage?: string | null;
   children: React.ReactNode;
@@ -23,6 +25,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
   actions,
   isEmpty = false,
   emptyMessage = 'Aucune donnée à représenter.',
+  loading = false,
   errorMessage,
   children,
 }) => (
@@ -40,7 +43,12 @@ export const ChartCard: React.FC<ChartCardProps> = ({
         ))}
     </div>
 
-    {errorMessage ? (
+    {loading ? (
+      <div role="status" className="py-8 text-center text-xs text-on-surface-variant flex flex-col items-center gap-2">
+        <span className="material-symbols-outlined animate-spin text-2xl text-primary">sync</span>
+        <span>Chargement des données...</span>
+      </div>
+    ) : errorMessage ? (
       <div role="alert" className="py-6 text-center text-xs text-red-400 flex flex-col items-center gap-1">
         <span className="material-symbols-outlined text-2xl">error</span>
         <span>{errorMessage}</span>

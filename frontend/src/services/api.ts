@@ -229,9 +229,15 @@ export const equipmentService = {
   delete: (id: string) => api.delete(`/equipments/${id}`),
   transfer: (id: string, data: { toUserId?: string; toDepartmentId?: string; reason?: string }) =>
     api.post(`/equipments/${id}/transfer`, data),
-  previewImport: (file: File) => api.post('/equipments/import/preview', importFormData(file)),
+  // L'instance envoie du JSON par défaut : les envois de fichiers forcent multipart/form-data (comme uploadImage)
+  previewImport: (file: File) =>
+    api.post('/equipments/import/preview', importFormData(file), {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
   importFile: (file: File, mapping: Record<string, string>) =>
-    api.post('/equipments/import', importFormData(file, mapping)),
+    api.post('/equipments/import', importFormData(file, mapping), {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
   exportFile: (format: 'csv' | 'xlsx') =>
     api.get('/equipments/export', { params: { format }, responseType: 'blob' }),
   uploadImage: (id: string, file: File) => {

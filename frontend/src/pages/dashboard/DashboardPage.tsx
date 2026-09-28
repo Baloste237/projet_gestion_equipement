@@ -356,6 +356,7 @@ export const DashboardPage: React.FC = () => {
               title="Répartition du Parc par Statut"
               description="Cliquez sur un statut pour ouvrir la liste correspondante"
               badge={kpis ? equipmentUnit(total) : undefined}
+              loading={loading && !kpis}
               isEmpty={kpis !== null && total === 0}
               emptyMessage="Aucun équipement enregistré : rien à représenter pour le moment."
               errorMessage={kpiError ? 'Indicateurs indisponibles.' : null}
@@ -393,6 +394,7 @@ export const DashboardPage: React.FC = () => {
                   ))}
                 </div>
               }
+              loading={activeTab === 'categories' ? loading && !kpis : loading && assignments === null}
               isEmpty={activeTab === 'categories' ? kpis !== null && categoryRows.length === 0 : assignments !== null && departmentRows.length === 0}
               emptyMessage={
                 activeTab === 'categories'
@@ -426,6 +428,7 @@ export const DashboardPage: React.FC = () => {
               title="Affectations Actives par Type de Bénéficiaire"
               description="Utilisateurs, départements et postes"
               badge={kpis ? assignmentUnit(kpis.assignments.active) : undefined}
+              loading={loading && !kpis}
               isEmpty={kpis !== null && kpis.assignments.active === 0}
               emptyMessage="Aucune affectation active."
               errorMessage={kpiError ? 'Indicateurs indisponibles.' : null}
@@ -443,6 +446,7 @@ export const DashboardPage: React.FC = () => {
               description={`Créations et restitutions sur ${PERIOD_LABELS[period] ?? `${period} jours`}, par ${
                 bucketSizeDays(periodDays) === 1 ? 'jour' : 'semaine'
               }`}
+              loading={loading && assignments === null}
               isEmpty={assignments !== null && trendIsEmpty}
               emptyMessage="Aucune affectation ni restitution sur cette période."
               errorMessage={assignments === null && !loading ? 'Liste des affectations indisponible.' : null}
