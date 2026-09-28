@@ -124,3 +124,35 @@ describe("Affectation polymorphique", () => {
     assert.strictEqual(created.length, 0);
   });
 });
+
+describe("Filtres de GET /assignments", () => {
+  test("accepte des filtres valides et l'absence de filtre", () => {
+    const filters = validators.assignmentFiltersSchema.parse({
+      assigneeType: "POSITION",
+      assigneeId: POSITION_ID,
+      status: "ACTIVE",
+    });
+    assert.deepStrictEqual(filters, { assigneeType: "POSITION", assigneeId: POSITION_ID, status: "ACTIVE" });
+    assert.deepStrictEqual(validators.assignmentFiltersSchema.parse({}), {});
+  });
+
+  test("rejette un type, un identifiant ou un statut invalides", () => {
+    assert.strictEqual(validators.assignmentFiltersSchema.safeParse({ assigneeType: "TEAM" }).success, false);
+    assert.strictEqual(validators.assignmentFiltersSchema.safeParse({ assigneeId: "pas-un-uuid" }).success, false);
+    assert.strictEqual(validators.assignmentFiltersSchema.safeParse({ status: "DONE" }).success, false);
+  });
+
+  test("transmet les filtres au repository et laisse la réponse sans filtre inchangée", async () => {
+    const seen: unknown[] = [];
+    repo.findAll = (async (filters: unknown) => {
+      seen.push(filters);
+      return [];
+    }) as any;
+
+    await service.getAll({ assigneeType: "POSITION", assigneeId: POSITION_ID, status: "ACTIVE" });
+    await service.getAll();
+
+    assert.deepStrictEqual(seen[0], { assigneeType: "POSITION", assigneeId: POSITION_ID, status: "ACTIVE" });
+    assert.deepStrictEqual(seen[1], {});
+  });
+});

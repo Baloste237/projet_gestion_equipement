@@ -57,10 +57,23 @@ router.post(
  * @openapi
  * /api/assignments:
  *   get:
- *     summary: Lister toutes les affectations
+ *     summary: Lister les affectations (filtres optionnels)
  *     tags: [Assignments]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: assigneeType
+ *         required: false
+ *         schema: { type: string, enum: [USER, DEPARTMENT, POSITION] }
+ *       - in: query
+ *         name: assigneeId
+ *         required: false
+ *         schema: { type: string, format: uuid }
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema: { type: string, enum: [ACTIVE, TRANSFERRED, RETURNED] }
  *     responses:
  *       200:
  *         description: Liste des affectations
@@ -73,6 +86,8 @@ router.post(
  *                 data:
  *                   type: array
  *                   items: { $ref: '#/components/schemas/Assignment' }
+ *       400:
+ *         description: Filtres invalides
  *       401:
  *         description: Non authentifié
  */

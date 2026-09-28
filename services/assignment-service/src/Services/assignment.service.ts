@@ -5,7 +5,7 @@ import { equipmentServiceClient } from "../clients/equipment-service.client";
 import { assigneeResolver } from "./assignee.resolver";
 import { eventPublisher } from "../clients/event-publisher.client";
 import { throwError } from "../errors/throw-error";
-import { AssigneeType, CreateAssignmentDTO, CreateTransferDTO, CreateReturnDTO } from "../types/assignment.type";
+import { AssigneeType, AssignmentFilters, CreateAssignmentDTO, CreateTransferDTO, CreateReturnDTO } from "../types/assignment.type";
 
 type AssignmentRecord = { assigneeType: AssigneeType; assigneeId: string; equipmentId: string };
 
@@ -56,8 +56,8 @@ export const assignmentService = {
     return assignment;
   },
 
-  getAll: async () => {
-    const assignments = await assignmentRepository.findAll();
+  getAll: async (filters: AssignmentFilters = {}) => {
+    const assignments = await assignmentRepository.findAll(filters);
     return Promise.all(assignments.map(withDetails));
   },
 

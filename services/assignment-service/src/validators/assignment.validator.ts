@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ASSIGNEE_TYPES } from "../types/assignment.type";
+import { ASSIGNEE_TYPES, ASSIGNMENT_STATUSES } from "../types/assignment.type";
 
 // Compatibilité : un ancien payload `{ userId }` est traduit en `{ assigneeType: "USER", assigneeId }`
 const mapLegacyUserId = (body: unknown) => {
@@ -30,4 +30,10 @@ export const createTransferSchema = z.object({
 export const createReturnSchema = z.object({
   condition: z.enum(["GOOD", "DAMAGED", "LOST"]),
   note: z.string().optional(),
+});
+
+export const assignmentFiltersSchema = z.object({
+  assigneeType: z.enum(ASSIGNEE_TYPES).optional(),
+  assigneeId: z.string().uuid().optional(),
+  status: z.enum(ASSIGNMENT_STATUSES).optional(),
 });
