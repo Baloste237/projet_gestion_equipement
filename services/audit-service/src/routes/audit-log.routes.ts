@@ -60,4 +60,6 @@ router.get("/", authenticate, checkPermission("audit:read"), auditLogController.
  */
 router.get("/:id", authenticate, checkPermission("audit:read"), auditLogController.getById);
 
+router.post("/", auditLogController.create);
+
 export default router;
