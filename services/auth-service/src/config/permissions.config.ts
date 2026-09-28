@@ -11,10 +11,12 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     "equipment:read", "equipment:update",
     "assignment:create", "assignment:read", "assignment:transfer", "assignment:return",
     "inventory:create",
+    "audit:read",
   ],
   EMPLOYE: [
     "equipment:read",
     "assignment:read",
+    "audit:read",
   ],
   AUDITEUR: [
     "equipment:read",
