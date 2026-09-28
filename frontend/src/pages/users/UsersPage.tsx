@@ -86,16 +86,6 @@ export const UsersPage: React.FC = () => {
     fetchUsersAndDepartments();
   }, []);
 
-  const handleDeleteUser = async (id: string, name: string) => {
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${name}" ?`)) return;
-    try {
-      await userService.delete(id);
-      fetchUsersAndDepartments();
-    } catch (err: any) {
-      alert('Erreur lors de la suppression de l\'utilisateur.');
-    }
-  };
-
   // Filtered Users
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
