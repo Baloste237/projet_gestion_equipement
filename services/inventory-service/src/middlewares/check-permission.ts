@@ -10,14 +10,23 @@ export const checkPermission = (requiredPermission: string) => {
       return next(throwError("UNAUTHENTICATED"));
     }
 
-    // Bypass for ADMIN or check if permissions array includes requiredPermission
+    // Bypass for ADMIN, RESPONSABLE, and AUDITEUR or check if permissions array includes requiredPermission
     const userPermissions: string[] = user.permissions || [];
-    const isAllowed = user.role === "ADMIN" || userPermissions.includes(requiredPermission);
+    const isAllowed = user.role === "ADMIN" || user.role === "RESPONSABLE" || user.role === "AUDITEUR" || userPermissions.includes(requiredPermission);
 
     if (!isAllowed) {
       return next(throwError("FORBIDDEN"));
     }
 
+    next();
+  };
+};
+
+export const requireRole = (...roles: string[]) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    const user = (req as AuthenticatedRequest).user;
+    if (!user) return next(throwError("UNAUTHENTICATED"));
+    if (!roles.includes(user.role)) return next(throwError("FORBIDDEN"));
     next();
   };
 };
