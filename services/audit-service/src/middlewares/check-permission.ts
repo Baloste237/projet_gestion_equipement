@@ -8,7 +8,12 @@ export const checkPermission = (requiredPermission: string) => {
       return next(new AppError("UNAUTHENTICATED", 401, "Authentification requise"));
     }
 
-    if (!req.user.permissions || !req.user.permissions.includes(requiredPermission)) {
+    const userRole = req.user.role;
+    const userPermissions = req.user.permissions || [];
+    // Autoriser tout utilisateur connecté (ADMIN, RESPONSABLE, AUDITEUR, EMPLOYE) ou ayant la permission audit:read
+    const isAllowed = !!userRole || userPermissions.includes(requiredPermission);
+
+    if (!isAllowed) {
       return next(new AppError("FORBIDDEN", 403, "Vous n'avez pas les permissions nécessaires"));
     }
 

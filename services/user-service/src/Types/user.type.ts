@@ -6,12 +6,16 @@ export interface CreateUserDTO {
   role?: string;
   departmentId?: string;
   avatarUrl?: string;
+  phone?: string | null;
+  countryCode?: string | null;
 }
 
 export interface UpdateProfileDTO {
   firstName?: string;
   lastName?: string;
   avatarUrl?: string;
+  phone?: string | null;
+  countryCode?: string | null;
 }
 
 export interface UpdateRoleDTO {

@@ -3,10 +3,10 @@ import amqp, { Channel, Connection } from "amqplib";
 const RABBITMQ_URL = process.env.RABBITMQ_URL || "amqp://admin:admin@localhost:5672";
 const EXCHANGE_NAME = "audit_events";
 
-let connection: Connection | null = null;
-let channel: Channel | null = null;
+let connection: any = null;
+let channel: any = null;
 
-export const connectRabbitMQ = async (): Promise<Channel> => {
+export const connectRabbitMQ = async (): Promise<any> => {
   if (channel) return channel;
 
   try {

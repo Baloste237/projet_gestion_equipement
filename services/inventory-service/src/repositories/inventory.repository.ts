@@ -10,6 +10,9 @@ export const inventoryRepository = {
   findById: (id: string) =>
     prisma.inventory.findUnique({ where: { id }, include: { items: true } }),
 
+  countInProgress: () =>
+    prisma.inventory.count({ where: { status: "IN_PROGRESS" } }),
+
   complete: (id: string) =>
     prisma.inventory.update({
       where: { id },

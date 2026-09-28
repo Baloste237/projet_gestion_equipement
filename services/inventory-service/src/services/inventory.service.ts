@@ -5,14 +5,66 @@ import { throwError } from "../errors/throw-error";
 import { CreateInventoryDTO, AddInventoryItemDTO, CheckInventoryItemDTO } from "../types/inventory.type";
 
 export const inventoryService = {
-  create: (data: CreateInventoryDTO) => inventoryRepository.create(data),
+  create: async (data: CreateInventoryDTO & { autoPopulate?: boolean }) => {
+    const inventory = await inventoryRepository.create({
+      title: data.title,
+      createdBy: data.createdBy,
+    });
 
-  getAll: () => inventoryRepository.findAll(),
+    if (data.autoPopulate !== false) {
+      try {
+        const equipments = await equipmentServiceClient.getAllEquipments();
+        if (Array.isArray(equipments)) {
+          await Promise.all(
+            equipments.map(async (eq: any) => {
+              try {
+                await inventoryItemRepository.create({
+                  inventoryId: inventory.id,
+                  equipmentId: eq.id,
+                });
+              } catch (_) {}
+            })
+          );
+        }
+      } catch (err) {
+        console.error("Impossible d'importer automatiquement le parc d'équipements:", err);
+      }
+    }
+
+    return inventoryRepository.findById(inventory.id);
+  },
+
+  getAll: async () => {
+    const inventories = await inventoryRepository.findAll();
+    return Promise.all(
+      inventories.map(async (inv) => {
+        const itemsWithDetails = await Promise.all(
+          (inv.items || []).map(async (item) => {
+            let equipment = null;
+            try {
+              equipment = await equipmentServiceClient.getEquipmentById(item.equipmentId);
+            } catch (_) {}
+            return { ...item, equipment };
+          })
+        );
+        return { ...inv, items: itemsWithDetails };
+      })
+    );
+  },
 
   getById: async (id: string) => {
     const inventory = await inventoryRepository.findById(id);
     if (!inventory) throwError("INVENTORY_NOT_FOUND");
-    return inventory;
+    const itemsWithDetails = await Promise.all(
+      (inventory!.items || []).map(async (item) => {
+        let equipment = null;
+        try {
+          equipment = await equipmentServiceClient.getEquipmentById(item.equipmentId);
+        } catch (_) {}
+        return { ...item, equipment };
+      })
+    );
+    return { ...inventory, items: itemsWithDetails };
   },
 
   addItem: async (inventoryId: string, data: AddInventoryItemDTO) => {

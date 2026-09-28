@@ -7,6 +7,7 @@ import swaggerSpec from "./Config/swagger";
 import { errorHandler } from "./middlewares/error-handler";
 import userRoutes from "./Routes/user.routes";
 import departmentRoutes from "./Routes/department.routes";
+import positionRoutes from "./Routes/position.routes";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/departments", departmentRoutes);
+app.use("/api/positions", positionRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

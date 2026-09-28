@@ -23,17 +23,56 @@ export const authService = {
       role: data.role || "EMPLOYE",
     });
 
-    // On ne renvoie jamais le hash du mot de passe
+    auditPublisher.publish({
+      action: "USER_REGISTER",
+      routingKey: "auth.register",
+      entityType: "Credential",
+      entityId: credential.id,
+      performedBy: credential.email,
+      metadata: { email: credential.email, httpStatus: 201, role: credential.role },
+    });
+
     return { id: credential.id, email: credential.email, role: credential.role };
   },
 
   login: async (data: LoginDTO) => {
     const credential = await credentialRepository.findByEmail(data.email);
-    if (!credential) throwError("INVALID_CREDENTIALS");
-    if (!credential!.isActive) throwError("ACCOUNT_DEACTIVATED");
+    if (!credential) {
+      auditPublisher.publish({
+        action: "AUTHENTICATION_FAILED",
+        routingKey: "auth.failed",
+        entityType: "Auth",
+        entityId: data.email,
+        performedBy: data.email,
+        metadata: { email: data.email, httpStatus: 401, error: "Identifiants invalides" },
+      });
+      throwError("INVALID_CREDENTIALS");
+    }
+
+    if (!credential!.isActive) {
+      auditPublisher.publish({
+        action: "AUTHENTICATION_FAILED",
+        routingKey: "auth.failed",
+        entityType: "Auth",
+        entityId: credential!.id,
+        performedBy: credential!.email,
+        metadata: { email: credential!.email, httpStatus: 403, error: "Compte désactivé" },
+      });
+      throwError("ACCOUNT_DEACTIVATED");
+    }
 
     const isPasswordValid = await bcrypt.compare(data.password, credential!.passwordHash);
-    if (!isPasswordValid) throwError("INVALID_CREDENTIALS");
+    if (!isPasswordValid) {
+      auditPublisher.publish({
+        action: "AUTHENTICATION_FAILED",
+        routingKey: "auth.failed",
+        entityType: "Auth",
+        entityId: credential!.id,
+        performedBy: credential!.email,
+        metadata: { email: credential!.email, httpStatus: 401, error: "Mot de passe incorrect" },
+      });
+      throwError("INVALID_CREDENTIALS");
+    }
 
     const permissions = getPermissionsForRole(credential!.role);
 
@@ -53,12 +92,12 @@ export const authService = {
     });
 
     auditPublisher.publish({
-      action: "AUTH_LOGIN",
+      action: "AUTHENTICATION_SUCCESS",
       routingKey: "auth.login",
       entityType: "Credential",
       entityId: credential!.id,
-      performedBy: credential!.id,
-      metadata: { email: credential!.email },
+      performedBy: credential!.email,
+      metadata: { email: credential!.email, httpStatus: 200, role: credential!.role },
     });
 
     return {

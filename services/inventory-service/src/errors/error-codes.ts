@@ -11,6 +11,7 @@ export const ERROR_CODES = {
   INVENTORY_ITEM_NOT_FOUND: { statusCode: 404, message: "Élément d'inventaire introuvable" },
   EQUIPMENT_NOT_FOUND: { statusCode: 404, message: "Équipement introuvable" },
   EQUIPMENT_SERVICE_UNAVAILABLE: { statusCode: 503, message: "Service équipement indisponible" },
+  ASSIGNMENT_SERVICE_UNAVAILABLE: { statusCode: 503, message: "Service affectation indisponible" },
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_CODES;
