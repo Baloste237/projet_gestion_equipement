@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { dashboardController } from "../controllers/dashboard.controller";
 import { authenticate } from "../middlewares/authenticate";
-import { requireRole } from "../middlewares/check-permission";
 
 const router = Router();
 
@@ -44,18 +43,20 @@ router.get("/kpis", authenticate, dashboardController.getKpis);
  * /api/dashboard/kpis/rebuild:
  *   post:
  *     summary: Recalculer tous les KPIs depuis equipment-service et assignment-service
- *     description: À utiliser si des événements ont été perdus (RabbitMQ indisponible lors d'une modification).
+ *     description: |
+ *       À utiliser si des événements ont été perdus (RabbitMQ indisponible lors d'une modification).
+ *       Ouvert à tout utilisateur authentifié, quel que soit son rôle.
  *     tags: [Dashboard]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Compteurs recalculés (equipmentCount, activeAssignmentCount)
- *       403:
- *         description: Réservé aux administrateurs
+ *       401:
+ *         description: Non authentifié
  *       503:
  *         description: equipment-service ou assignment-service indisponible
  */
-router.post("/kpis/rebuild", authenticate, requireRole("ADMIN"), dashboardController.rebuildKpis);
+router.post("/kpis/rebuild", authenticate, dashboardController.rebuildKpis);
 
 export default router;
