@@ -6,9 +6,24 @@ import {
   buildEquipmentDrafts,
   customMappingSchema,
   EquipmentDraft,
+  IMPORT_FIELDS,
   ImportField,
   resolveColumnMapping,
 } from "./equipment-row.mapper";
+
+const PREVIEW_ROW_COUNT = 5;
+
+// Lecture commune à l'import et à l'aperçu : mêmes règles, mêmes messages d'erreur
+const readImportSheet = async (file: { buffer: Buffer; originalname: string }) => {
+  let sheet;
+  try {
+    sheet = await readSpreadsheet(file.buffer, file.originalname);
+  } catch {
+    throw new HttpError(400, "Fichier illisible : un CSV ou un classeur Excel (.xlsx) est attendu");
+  }
+  if (!sheet.rows.length) throw new HttpError(400, "Le fichier ne contient aucune ligne de données");
+  return sheet;
+};
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
@@ -76,16 +91,26 @@ const insertDrafts = (drafts: EquipmentDraft[]) =>
   );
 
 export const equipmentImportService = {
+  // Ne crée rien : renvoie les en-têtes du fichier, quelques lignes et le mapping reconnu automatiquement
+  // (au format { "En-tête du fichier": "champ" }, directement réutilisable comme `mapping` de l'import)
+  preview: async (file: { buffer: Buffer; originalname: string }) => {
+    const sheet = await readImportSheet(file);
+    const detected = resolveColumnMapping(sheet.headers);
+    const suggestedMapping = Object.fromEntries(
+      (Object.entries(detected) as [ImportField, string][]).map(([field, header]) => [header, field])
+    );
+    return {
+      headers: sheet.headers,
+      rowCount: sheet.rows.length,
+      sampleRows: sheet.rows.slice(0, PREVIEW_ROW_COUNT).map(({ rowNumber, values }) => ({ row: rowNumber, values })),
+      suggestedMapping,
+      fields: IMPORT_FIELDS,
+    };
+  },
+
   import: async (file: { buffer: Buffer; originalname: string }, rawMapping?: unknown) => {
     const customMapping = parseCustomMapping(rawMapping);
-
-    let sheet;
-    try {
-      sheet = await readSpreadsheet(file.buffer, file.originalname);
-    } catch {
-      throw new HttpError(400, "Fichier illisible : un CSV ou un classeur Excel (.xlsx) est attendu");
-    }
-    if (!sheet.rows.length) throw new HttpError(400, "Le fichier ne contient aucune ligne de données");
+    const sheet = await readImportSheet(file);
 
     const mapping = resolveColumnMapping(sheet.headers, customMapping);
     const { drafts, errors } = buildEquipmentDrafts(sheet.rows, mapping);

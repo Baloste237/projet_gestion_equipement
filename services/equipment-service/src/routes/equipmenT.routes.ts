@@ -12,6 +12,38 @@ const router = Router();
 
 /**
  * @openapi
+ * /api/equipments/import/preview:
+ *   post:
+ *     summary: Prévisualiser un fichier d'import (sans rien créer)
+ *     description: |
+ *       Lit le fichier .csv ou .xlsx et renvoie ses en-têtes, le nombre de lignes, les premières lignes et le
+ *       mapping reconnu automatiquement (`suggestedMapping`, au format { "En-tête": "champ" } réutilisable tel quel
+ *       comme `mapping` de POST /equipments/import). Aucun équipement n'est créé et le fichier n'est pas conservé.
+ *     tags: [Equipments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Fichier .csv (séparateur , ou ;) ou .xlsx, 5 Mo max
+ *     responses:
+ *       200:
+ *         description: Aperçu (headers, rowCount, sampleRows, suggestedMapping, fields)
+ *       400:
+ *         description: Fichier manquant, illisible ou sans ligne de données
+ */
+router.post("/import/preview", uploadImportFile.single("file"), equipmentController.previewImport);
+
+/**
+ * @openapi
  * /api/equipments/import:
  *   post:
  *     summary: Importer des équipements depuis un fichier CSV ou Excel

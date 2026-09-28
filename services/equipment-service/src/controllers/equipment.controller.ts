@@ -53,6 +53,18 @@ export const equipmentController = {
       res.status(200).json({ success: true, data: equipment });
     } catch (err) { next(err); }
   },
+  previewImport: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: { code: "NO_FILE", message: "Aucun fichier reçu" },
+        });
+      }
+      const preview = await equipmentImportService.preview(req.file);
+      res.status(200).json({ success: true, data: preview });
+    } catch (err) { next(err); }
+  },
   importFile: async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.file) {
