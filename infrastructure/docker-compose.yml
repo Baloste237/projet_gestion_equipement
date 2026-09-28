@@ -118,6 +118,10 @@ services:
     container_name: user-service
     env_file:
       - ../services/user-service/.env.docker
+    environment:
+      # Appel HTTP pour refuser la suppression d un poste ayant des affectations actives
+      ASSIGNMENT_SERVICE_URL: http://assignment-service:4004/api
+      AUDIT_SERVICE_URL: http://audit-service:4006
     ports:
       - "4002:4002"
     volumes:
