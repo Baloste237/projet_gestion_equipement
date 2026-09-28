@@ -5,6 +5,8 @@ import {
   createEquipmentSchema,
   updateEquipmentSchema,
   transferEquipmentSchema,
+  lookupEquipmentsSchema,
+  batchStatusSchema,
 } from "../validators/equipment.validator";
 import { uploadEquipmentImage, uploadImportFile } from "../config/upload";
 
@@ -102,6 +104,76 @@ router.post("/import", uploadImportFile.single("file"), equipmentController.impo
  *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
  */
 router.get("/export", equipmentController.exportFile);
+
+/**
+ * @openapi
+ * /api/equipments/lookup:
+ *   post:
+ *     summary: Lire plusieurs équipements en un appel
+ *     description: |
+ *       Renvoie les équipements trouvés (`id`, `name`, `serialNumber`, `status`). Les identifiants inconnus sont
+ *       simplement absents de la réponse. Un POST évite la limite de longueur d'URL (200 identifiants au plus).
+ *     tags: [Equipments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [ids]
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 minItems: 1
+ *                 maxItems: 200
+ *                 items: { type: string, format: uuid }
+ *     responses:
+ *       200:
+ *         description: Équipements trouvés
+ *       400:
+ *         description: Liste vide, trop longue, en double ou identifiant invalide
+ */
+router.post("/lookup", validate(lookupEquipmentsSchema), equipmentController.lookup);
+
+/**
+ * @openapi
+ * /api/equipments/status/batch:
+ *   post:
+ *     summary: Changer le statut de plusieurs équipements, tout ou rien
+ *     description: |
+ *       Passe tous les équipements de `from` à `to` dans une seule transaction, seulement si **tous** sont au
+ *       statut `from`. Sinon rien n'est modifié et la réponse 409 liste les équipements en défaut
+ *       (`NOT_FOUND` ou `STATUS_MISMATCH`). Publie, pour chaque équipement, l'audit et l'événement de changement
+ *       de statut habituels.
+ *     tags: [Equipments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [ids, from, to]
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 minItems: 1
+ *                 maxItems: 200
+ *                 items: { type: string, format: uuid }
+ *               from: { type: string, enum: [AVAILABLE, ASSIGNED, IN_MAINTENANCE, RETIRED, A_COMPLETER] }
+ *               to: { type: string, enum: [AVAILABLE, ASSIGNED, IN_MAINTENANCE, RETIRED, A_COMPLETER] }
+ *     responses:
+ *       200:
+ *         description: Statuts modifiés (updatedCount, ids)
+ *       400:
+ *         description: Corps invalide
+ *       409:
+ *         description: Au moins un équipement introuvable ou pas au statut `from` (détail dans `details`)
+ */
+router.post("/status/batch", validate(batchStatusSchema), equipmentController.updateStatusBatch);
 
 /**
  * @openapi

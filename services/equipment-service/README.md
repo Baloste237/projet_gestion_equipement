@@ -96,6 +96,17 @@ services/equipment-service/
 - L'aperçu et l'import partagent la même lecture du fichier (mêmes règles, mêmes erreurs). Le fichier est envoyé deux fois (aperçu, puis import) et n'est jamais conservé sur le serveur.
 - Tests : `npm test` (`tests/import-export.unit.test.ts`).
 
+## Routes groupées (utilisées par l'affectation groupée)
+
+| Méthode | Route | Rôle |
+|---|---|---|
+| `POST` | `/api/equipments/lookup` | Lit jusqu'à 200 équipements en un appel (`{ "ids": [...] }` : `id`, `name`, `serialNumber`, `status`). Les identifiants inconnus sont absents de la réponse. |
+| `POST` | `/api/equipments/status/batch` | Passe `ids` du statut `from` au statut `to` **en une transaction, seulement si tous** sont au statut `from`. Sinon rien n'est modifié et la réponse `409` liste les équipements en défaut (`NOT_FOUND` ou `STATUS_MISMATCH`). |
+
+- Chaque équipement modifié donne lieu à l'audit `EQUIPMENT_UPDATED` et à l'événement `equipment.updated` (avant/après), comme la mise à jour unitaire : les KPIs restent exacts. L'auteur est lu dans l'en-tête `x-user-id` (à défaut « system »).
+- La condition sur `from` protège aussi contre un changement de statut concurrent.
+- Plafond de 200 identifiants, sans doublon.
+
 ## Prochaines Étapes
 
 - **Authentification et RBAC** : Implémenter les middlewares `authenticate.ts` et `check-permission.ts` lorsque le service d'authentification sera prêt.

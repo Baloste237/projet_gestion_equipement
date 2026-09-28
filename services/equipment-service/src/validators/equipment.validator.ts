@@ -47,3 +47,18 @@ export const transferEquipmentSchema = z.object({
   toDepartmentId: z.string().uuid("L'ID de département doit être un UUID valide").optional(),
   reason: z.string().optional(),
 });
+
+// Plafond commun aux routes groupées (aligné sur l'affectation groupée)
+export const MAX_BATCH_SIZE = 200;
+
+const batchIds = z
+  .array(z.string().uuid("Chaque identifiant doit être un UUID valide"))
+  .min(1, "Au moins un équipement est requis")
+  .max(MAX_BATCH_SIZE, `Au plus ${MAX_BATCH_SIZE} équipements par requête`)
+  .refine((ids) => new Set(ids).size === ids.length, "La liste contient des identifiants en double");
+
+export const lookupEquipmentsSchema = z.object({ ids: batchIds });
+
+export const batchStatusSchema = z
+  .object({ ids: batchIds, from: equipmentStatusEnum, to: equipmentStatusEnum })
+  .refine((data) => data.from !== data.to, { message: "Les statuts de départ et d'arrivée doivent différer" });

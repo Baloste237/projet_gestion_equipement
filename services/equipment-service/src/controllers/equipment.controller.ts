@@ -28,6 +28,20 @@ export const equipmentController = {
       res.status(200).json({ success: true, data: equipment });
     } catch (err) { next(err); }
   },
+  lookup: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const equipments = await equipmentService.lookup(req.body.ids);
+      res.status(200).json({ success: true, data: equipments });
+    } catch (err) { next(err); }
+  },
+  updateStatusBatch: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const author = req.headers["x-user-id"];
+      const { ids, from, to } = req.body;
+      const result = await equipmentService.updateStatusBatch(ids, from, to, typeof author === "string" && author ? author : "system");
+      res.status(200).json({ success: true, data: result });
+    } catch (err) { next(err); }
+  },
   transfer: async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
       const equipment = await equipmentService.transfer(req.params.id, req.body);

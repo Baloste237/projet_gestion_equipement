@@ -56,3 +56,12 @@ export interface EquipmentResponseDTO {
   notes?: string | null;
   createdAt: Date;
 }
+
+export type BatchConflictReason = "NOT_FOUND" | "STATUS_MISMATCH";
+
+export interface BatchConflict {
+  id: string;
+  reason: BatchConflictReason;
+  /** Statut actuel de l'équipement (absent si introuvable) */
+  status?: string;
+}
