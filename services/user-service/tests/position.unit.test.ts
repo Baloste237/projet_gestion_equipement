@@ -2,6 +2,13 @@ import assert from "node:assert";
 import http from "node:http";
 import { AddressInfo } from "node:net";
 import { test, describe, before, after, beforeEach } from "node:test";
+import jwt from "jsonwebtoken";
+
+process.env.JWT_SECRET = "test-secret";
+process.env.INTERNAL_SERVICE_TOKEN = "test-internal";
+
+// Écriture sur les postes : réservée aux administrateurs, identité lue dans le jeton signé
+const adminToken = (id = "admin-1") => jwt.sign({ id, role: "ADMIN", permissions: [] }, "test-secret", { expiresIn: "5m" });
 
 const DEPARTMENT_ID = "11111111-1111-4111-8111-111111111111";
 const OTHER_DEPARTMENT_ID = "22222222-2222-4222-8222-222222222222";
@@ -267,7 +274,7 @@ describe("Routes HTTP /api/positions", () => {
 
   after(() => server.close());
 
-  const call = async (method: string, path: string, body?: unknown, token?: string) => {
+  const call = async (method: string, path: string, body?: unknown, token: string | null = adminToken()) => {
     const response = await fetch(`${base}${path}`, {
       method,
       headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -276,13 +283,21 @@ describe("Routes HTTP /api/positions", () => {
     return { status: response.status, body: (await response.json()) as any };
   };
 
-  test("POST crée un poste sans contrôle de rôle (201) et rejette un corps invalide (400)", async () => {
+  test("POST crée un poste (201) et rejette un corps invalide (400)", async () => {
     const ok = await call("POST", "", { name: "Auditeur", departmentId: DEPARTMENT_ID });
     assert.strictEqual(ok.status, 201);
     assert.strictEqual(ok.body.data.name, "Auditeur");
 
     const invalid = await call("POST", "", { name: "A", departmentId: DEPARTMENT_ID });
     assert.strictEqual(invalid.status, 400);
+  });
+
+  test("refuse l'écriture sans jeton (401) et pour un EMPLOYE (403)", async () => {
+    const body = { name: "Auditeur", departmentId: DEPARTMENT_ID };
+    assert.strictEqual((await call("POST", "", body, null)).status, 401);
+    const employee = jwt.sign({ id: "e1", role: "EMPLOYE", permissions: [] }, "test-secret", { expiresIn: "5m" });
+    assert.strictEqual((await call("POST", "", body, employee)).status, 403);
+    assert.strictEqual(created.length, 0);
   });
 
   test("POST renvoie 409 en cas de doublon et 400 pour un département inconnu", async () => {
@@ -305,12 +320,13 @@ describe("Routes HTTP /api/positions", () => {
   });
 
   test("DELETE relaie le jeton, refuse avec 409 s'il y a des affectations actives, 200 sinon", async () => {
-    const blocked = await call("DELETE", `/${ACTIVE_POSITION}`, undefined, "jeton-employe");
+    const token = adminToken();
+    const blocked = await call("DELETE", `/${ACTIVE_POSITION}`, undefined, token);
     assert.strictEqual(blocked.status, 409);
     assert.strictEqual(blocked.body.code, "POSITION_HAS_ACTIVE_ASSIGNMENTS");
-    assert.strictEqual(receivedAuthorization, "Bearer jeton-employe");
+    assert.strictEqual(receivedAuthorization, `Bearer ${token}`);
 
-    const ok = await call("DELETE", `/${POSITION_ID}`, undefined, "jeton-employe");
+    const ok = await call("DELETE", `/${POSITION_ID}`, undefined, token);
     assert.strictEqual(ok.status, 200);
     assert.deepStrictEqual(deleted, [POSITION_ID]);
   });
@@ -333,7 +349,7 @@ describe("Audit des opérations sur les postes", () => {
   const send = (method: string, path: string, body?: unknown) =>
     fetch(`${base}${path}`, {
       method,
-      headers: { "Content-Type": "application/json", "x-user-id": "user-42" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${adminToken("user-42")}` },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
 

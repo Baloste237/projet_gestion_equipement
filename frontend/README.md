@@ -6,7 +6,7 @@ Interface React 19 + TypeScript + Vite + Tailwind CSS 3, qui communique avec l'A
 
 | Commande | Rôle |
 |---|---|
-| `npm run dev` | Serveur de développement (`http://localhost:5173`) |
+| `npm run dev` | Serveur de développement (`http://localhost:3000`) |
 | `npm run build` | Contrôle des types (`tsc -b`) puis build de production |
 | `npm run lint` | Oxlint |
 | `npm test` | Tests unitaires de la logique pure (`tsx --test tests/**/*.test.ts`) |

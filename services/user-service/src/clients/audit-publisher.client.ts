@@ -15,7 +15,7 @@ export const auditPublisher = {
     try {
       const response = await fetch(`${auditServiceUrl()}/audit-logs`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-internal-token": process.env.INTERNAL_SERVICE_TOKEN || "" },
         body: JSON.stringify({ ...params, serviceName: process.env.SERVICE_NAME || "user-service" }),
         signal: AbortSignal.timeout(3000),
       });

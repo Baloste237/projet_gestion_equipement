@@ -8,6 +8,8 @@ import { RegisterDTO, LoginDTO } from "../types/auth.type";
 import { auditPublisher } from "../clients/audit-publisher.client";
 
 const SALT_ROUNDS = 10;
+// Hash factice : la durée de réponse du login ne révèle pas si l'e-mail existe
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("mot-de-passe-factice", SALT_ROUNDS);
 const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
 
 export const authService = {
@@ -18,9 +20,11 @@ export const authService = {
     const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
 
     const credential = await credentialRepository.create({
-      email: data.email,
+      // E-mail normalisé en minuscules : sert de clé de rapprochement avec les fiches utilisateurs
+      email: data.email.trim().toLowerCase(),
       passwordHash,
-      role: data.role || "EMPLOYE",
+      // Inscription publique : toujours le rôle le plus bas, jamais celui de la requête
+      role: "EMPLOYE",
     });
 
     auditPublisher.publish({
@@ -37,39 +41,28 @@ export const authService = {
 
   login: async (data: LoginDTO) => {
     const credential = await credentialRepository.findByEmail(data.email);
-    if (!credential) {
-      auditPublisher.publish({
-        action: "AUTHENTICATION_FAILED",
-        routingKey: "auth.failed",
-        entityType: "Auth",
-        entityId: data.email,
-        performedBy: data.email,
-        metadata: { email: data.email, httpStatus: 401, error: "Identifiants invalides" },
-      });
-      throwError("INVALID_CREDENTIALS");
-    }
 
-    if (!credential!.isActive) {
-      auditPublisher.publish({
-        action: "AUTHENTICATION_FAILED",
-        routingKey: "auth.failed",
-        entityType: "Auth",
-        entityId: credential!.id,
-        performedBy: credential!.email,
-        metadata: { email: credential!.email, httpStatus: 403, error: "Compte désactivé" },
-      });
-      throwError("ACCOUNT_DEACTIVATED");
-    }
+    // Comparaison toujours effectuée (hash factice si le compte n'existe pas)
+    const isPasswordValid = await bcrypt.compare(data.password, credential?.passwordHash ?? DUMMY_PASSWORD_HASH);
 
-    const isPasswordValid = await bcrypt.compare(data.password, credential!.passwordHash);
-    if (!isPasswordValid) {
+    // Même réponse pour compte inconnu, mot de passe faux et compte désactivé ;
+    // la cause réelle reste uniquement dans le journal d'audit.
+    const failure = !credential
+      ? { id: data.email, email: data.email, reason: "Identifiants invalides" }
+      : !isPasswordValid
+        ? { id: credential.id, email: credential.email, reason: "Mot de passe incorrect" }
+        : !credential.isActive
+          ? { id: credential.id, email: credential.email, reason: "Compte désactivé" }
+          : null;
+
+    if (failure) {
       auditPublisher.publish({
         action: "AUTHENTICATION_FAILED",
         routingKey: "auth.failed",
         entityType: "Auth",
-        entityId: credential!.id,
-        performedBy: credential!.email,
-        metadata: { email: credential!.email, httpStatus: 401, error: "Mot de passe incorrect" },
+        entityId: failure.id,
+        performedBy: failure.email,
+        metadata: { email: failure.email, httpStatus: 401, error: failure.reason },
       });
       throwError("INVALID_CREDENTIALS");
     }
@@ -133,5 +126,17 @@ export const authService = {
 
     await refreshTokenRepository.revoke(refreshTokenValue);
     return { success: true };
+  },
+
+  verifyPassword: async (userId: string, password: string) => {
+    const credential = await credentialRepository.findById(userId);
+    if (!credential || !credential.isActive) {
+      throwError("INVALID_CREDENTIALS", "Mot de passe incorrect");
+    }
+    const isPasswordValid = await bcrypt.compare(password, credential.passwordHash);
+    if (!isPasswordValid) {
+      throwError("INVALID_CREDENTIALS", "Mot de passe incorrect");
+    }
+    return { valid: true };
   },
 };

@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Pagination } from '../../components/ui/Pagination';
+import { useClientPagination } from '../../hooks/useClientPagination';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { departmentService, positionService, type Department, type Position } from '../../services/api';
 import { PositionModal } from './PositionModal';
 import { Button } from '../../components/ui/Button';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { ConfirmPasswordPurgeModal } from '../../components/ui/ConfirmPasswordPurgeModal';
+import { readIsAdmin } from '../../utils/session';
 
 type ConfirmAction = 'status' | 'delete';
 
 const isPositionActive = (p: Position) => (p.isActive !== undefined ? p.isActive : p.status !== 'INACTIF');
 
 export const PositionsPage: React.FC = () => {
+  const isAdmin = readIsAdmin();
   const [positions, setPositions] = useState<Position[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +34,11 @@ export const PositionsPage: React.FC = () => {
     action: ConfirmAction;
   }>({ isOpen: false, position: null, action: 'status' });
   const [confirming, setConfirming] = useState(false);
+
+  // Purge state
+  const [isPurgeModalOpen, setIsPurgeModalOpen] = useState(false);
+  const [purgeLoading, setPurgeLoading] = useState(false);
+  const [purgeError, setPurgeError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -85,6 +95,24 @@ export const PositionsPage: React.FC = () => {
     }
   };
 
+  const handlePurge = async (password: string) => {
+    try {
+      setPurgeLoading(true);
+      setPurgeError(null);
+      await positionService.purge(password);
+      setIsPurgeModalOpen(false);
+      fetchData();
+    } catch (err: any) {
+      setPurgeError(
+        err.response?.data?.message ||
+        err.response?.data?.error?.message ||
+        'Erreur lors du vidage des postes'
+      );
+    } finally {
+      setPurgeLoading(false);
+    }
+  };
+
   const filteredPositions = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     return positions.filter((p) => {
@@ -100,6 +128,9 @@ export const PositionsPage: React.FC = () => {
       return matchesSearch && matchesDepartment && matchesStatus;
     });
   }, [positions, searchTerm, departmentFilter, statusFilter]);
+
+  // Pagination dans le navigateur
+  const paging = useClientPagination(filteredPositions, [searchTerm, departmentFilter, statusFilter].join('|'));
 
   const confirmPosition = confirmState.position;
   const confirmDeactivates = confirmPosition ? isPositionActive(confirmPosition) : false;
@@ -151,15 +182,31 @@ export const PositionsPage: React.FC = () => {
           </select>
         </div>
 
-        <Button
-          onClick={() => {
-            setEditingPosition(null);
-            setIsModalOpen(true);
-          }}
-          icon={<span className="material-symbols-outlined text-xl">add</span>}
-        >
-          Nouveau Poste
-        </Button>
+        <div className="flex items-center gap-3">
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => {
+                setPurgeError(null);
+                setIsPurgeModalOpen(true);
+              }}
+              className="px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-400 font-medium rounded-lg text-sm flex items-center justify-center gap-2 hover:bg-red-500/20 hover:border-red-500/50 transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">delete_sweep</span>
+              <span>Vider la liste</span>
+            </button>
+          )}
+
+          <Button
+            onClick={() => {
+              setEditingPosition(null);
+              setIsModalOpen(true);
+            }}
+            icon={<span className="material-symbols-outlined text-xl">add</span>}
+          >
+            Nouveau Poste
+          </Button>
+        </div>
       </div>
 
       {actionError && (
@@ -219,7 +266,7 @@ export const PositionsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/30 text-body-sm text-on-surface">
-                {filteredPositions.map((position) => {
+                {paging.pageItems.map((position) => {
                   const active = isPositionActive(position);
                   return (
                     <tr key={position.id} className="hover:bg-surface-container-high/50 transition-colors">
@@ -281,6 +328,13 @@ export const PositionsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <Pagination
+              page={paging.page}
+              pageSize={paging.pageSize}
+              total={paging.total}
+              onPageChange={paging.setPage}
+              onPageSizeChange={paging.setPageSize}
+            />
         </div>
       )}
 
@@ -310,6 +364,16 @@ export const PositionsPage: React.FC = () => {
         confirmText={confirmState.action === 'status' ? 'Changer le statut' : 'Supprimer le poste'}
         cancelText="Annuler"
         variant={confirmState.action === 'status' ? 'warning' : 'danger'}
+      />
+
+      <ConfirmPasswordPurgeModal
+        isOpen={isPurgeModalOpen}
+        onClose={() => setIsPurgeModalOpen(false)}
+        onConfirm={handlePurge}
+        title="Vider la liste des postes"
+        description="Cette action supprimera tous les postes de travail. Les utilisateurs qui occupaient ces postes seront conservés et basculeront automatiquement sans poste assigné."
+        loading={purgeLoading}
+        error={purgeError}
       />
     </AppLayout>
   );

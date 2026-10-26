@@ -8,12 +8,15 @@ const assignmentServiceApi = axios.create({
 });
 
 // Jeton de service éphémère, limité à la lecture des affectations
-const serviceToken = () =>
-  jwt.sign(
+const serviceToken = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("Variable d'environnement JWT_SECRET obligatoire");
+  return jwt.sign(
     { userId: "inventory-service", role: "SERVICE", permissions: ["assignment:read"] },
-    process.env.JWT_SECRET || "default_jwt_secret",
+    secret,
     { expiresIn: "5m" }
   );
+};
 
 export const assignmentServiceClient = {
   getAllAssignments: async () => {

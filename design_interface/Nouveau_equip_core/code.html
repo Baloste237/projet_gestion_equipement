@@ -1,0 +1,383 @@
+<!DOCTYPE html><html class="dark" lang="fr"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Enregistrer un Nouvel Équipement - EQUIP-CORE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Custom scrollbar for dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #131313;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #353535;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #424754;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "surface-container": "#20201f",
+                        "on-secondary-fixed": "#181c25",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-highest": "#353535",
+                        "on-secondary-fixed-variant": "#434751",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-primary-fixed": "#001a42",
+                        "outline-variant": "#424754",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-secondary-container": "#b5b8c5",
+                        "inverse-on-surface": "#313030",
+                        "secondary": "#c3c6d3",
+                        "on-tertiary": "#00363e",
+                        "inverse-primary": "#005ac2",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-tertiary-container": "#002f36",
+                        "secondary-fixed": "#dfe2ef",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-variant": "#353535",
+                        "on-secondary": "#2c303a",
+                        "primary": "#adc6ff",
+                        "background": "#131313",
+                        "secondary-fixed-dim": "#c3c6d3",
+                        "primary-container": "#4d8eff",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-tint": "#adc6ff",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001f25",
+                        "on-primary": "#002e6a",
+                        "surface": "#131313",
+                        "error": "#ffb4ab",
+                        "tertiary-container": "#009fb4",
+                        "primary-fixed": "#d8e2ff",
+                        "surface-bright": "#393939",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "outline": "#8c909f",
+                        "on-primary-container": "#00285d",
+                        "on-background": "#e5e2e1",
+                        "tertiary": "#2fd9f4",
+                        "secondary-container": "#454953",
+                        "surface-dim": "#131313",
+                        "on-surface-variant": "#c2c6d6",
+                        "tertiary-fixed": "#a2eeff",
+                        "on-error": "#690005",
+                        "inverse-surface": "#e5e2e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "xl": "64px",
+                        "margin": "32px",
+                        "gutter": "24px",
+                        "md": "24px",
+                        "lg": "40px",
+                        "sm": "12px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter", "sans-serif"],
+                        "headline-sm": ["Inter", "sans-serif"],
+                        "body-sm": ["Inter", "sans-serif"],
+                        "label-sm": ["JetBrains Mono", "monospace"],
+                        "headline-lg": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "headline-lg-mobile": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "label-md": ["JetBrains Mono", "monospace"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md h-screen w-screen overflow-hidden flex antialiased">
+<!-- Background App Context (Blurred) -->
+<div class="absolute inset-0 flex flex-col z-0 blur-sm pointer-events-none opacity-50">
+<!-- TopAppBar (Dummy for background context) -->
+<header class="flex justify-between items-center w-full px-margin h-16 bg-surface border-b border-outline-variant z-50">
+<div class="flex items-center gap-gutter">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">EQUIP-CORE</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="bg-primary text-on-primary px-4 py-2 rounded-DEFAULT font-label-md text-label-md">Create Asset</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar (Dummy for background context) -->
+<nav class="hidden md:flex flex-col p-md gap-base bg-surface-container-low border-r border-outline-variant h-full w-64">
+<div class="flex flex-col gap-xs mb-lg">
+<span class="font-headline-md text-headline-md text-primary">System Admin</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Global Operations</span>
+</div>
+<div class="flex flex-col gap-xs flex-1">
+<a class="bg-secondary-container text-on-secondary-container rounded-lg p-sm flex items-center gap-sm transition-all duration-200 ease-in-out font-label-md text-label-md" href="#"><span class="material-symbols-outlined text-[20px]">construction</span> Equipment</a>
+</div>
+</nav>
+<!-- Main Content Area (Dummy) -->
+<main class="flex-1 p-margin overflow-y-auto bg-background flex flex-col gap-gutter">
+<div class="flex justify-between items-center">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Equipment Directory</h1>
+</div>
+<!-- Grid Placeholder -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+<div class="h-48 bg-surface-container-low border border-outline-variant rounded-lg"></div>
+<div class="h-48 bg-surface-container-low border border-outline-variant rounded-lg"></div>
+<div class="h-48 bg-surface-container-low border border-outline-variant rounded-lg"></div>
+<div class="h-48 bg-surface-container-low border border-outline-variant rounded-lg"></div>
+</div>
+</main>
+</div>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-margin bg-black/60 backdrop-blur-sm">
+<!-- Modal Container -->
+<!-- Elevation: Surface Level 2 (#262626), 40% bg opacity shadow, large blur -->
+<div aria-labelledby="modal-title" aria-modal="true" class="w-full max-w-3xl max-h-[921px] bg-[#262626] border border-[#333333] rounded-xl flex flex-col shadow-[0_24px_48px_rgba(0,0,0,0.4)] overflow-hidden" role="dialog">
+<!-- Modal Header -->
+<div class="px-gutter py-md border-b border-[#333333] flex justify-between items-center bg-[#262626] z-10 sticky top-0">
+<div class="flex items-center gap-sm text-primary">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="server" aria-hidden="true" class="lucide lucide-server w-6 h-6"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"></rect><rect width="20" height="8" x="2" y="14" rx="2" ry="2"></rect><line x1="6" x2="6.01" y1="6" y2="6"></line><line x1="6" x2="6.01" y1="18" y2="18"></line></svg>
+<h2 class="font-headline-md text-headline-md text-on-surface m-0" id="modal-title">Enregistrer un Nouvel Équipement</h2>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors p-sm rounded-DEFAULT hover:bg-surface-variant focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-5 h-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+<span class="sr-only">Fermer</span>
+</button>
+</div>
+<!-- Modal Body (Scrollable) -->
+<div class="p-gutter overflow-y-auto flex-1 flex flex-col gap-lg bg-[#262626]">
+<form class="flex flex-col gap-lg" id="new-equipment-form">
+<!-- Section 1: Identification -->
+<fieldset class="flex flex-col gap-md">
+<legend class="font-label-md text-label-md text-primary uppercase tracking-wider mb-sm flex items-center gap-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            1. Identification
+                        </legend>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter"><div class="flex flex-col gap-xs md:col-span-2">
+    <label class="font-label-sm text-label-sm text-on-surface-variant">Photo de l'Équipement</label>
+    <div class="relative group cursor-pointer">
+        <div class="w-full h-32 border-2 border-dashed border-[#333333] rounded-lg bg-[#0D0D0D] flex flex-col items-center justify-center gap-xs hover:border-primary hover:bg-surface-container-low transition-all duration-200">
+            <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">add_a_photo</span>
+            <span class="font-label-sm text-label-sm text-outline-variant group-hover:text-on-surface transition-colors">Glisser-déposer ou cliquer pour ajouter</span>
+        </div>
+        <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" aria-label="Télécharger une photo de l'équipement">
+    </div>
+</div>
+<!-- Equipment Name -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-name">Nom de l'Équipement <span class="text-error">*</span></label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="tag" aria-hidden="true" class="lucide lucide-tag w-4 h-4"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle></svg>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-body-sm text-body-sm rounded-DEFAULT py-sm pl-10 pr-sm focus:outline-none focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant caret-[#2fd9f4]" id="eq-name" name="eq-name" placeholder="ex: SRV-PROD-01" type="text">
+</div>
+</div>
+<!-- Category -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-category">Catégorie <span class="text-error">*</span></label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="layers" aria-hidden="true" class="lucide lucide-layers w-4 h-4"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg>
+</div>
+<select class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-body-sm text-body-sm rounded-DEFAULT py-sm pl-10 pr-sm appearance-none focus:outline-none focus:ring-0 focus:border-primary transition-colors cursor-pointer" id="eq-category" name="eq-category">
+<option disabled="" selected="" value="">Sélectionner une catégorie</option>
+<option value="laptop">Laptop</option>
+<option value="server">Server</option>
+<option value="network">Network</option>
+<option value="peripheral">Peripheral</option>
+<option value="mobile">Mobile Device</option>
+</select>
+<div class="absolute inset-y-0 right-0 pr-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-down" aria-hidden="true" class="lucide lucide-chevron-down w-4 h-4"><path d="m6 9 6 6 6-6"></path></svg>
+</div>
+</div>
+</div>
+<!-- Serial Number -->
+<div class="flex flex-col gap-xs md:col-span-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-serial">Numéro de Série <span class="text-error">*</span></label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="barcode" aria-hidden="true" class="lucide lucide-barcode w-4 h-4"><path d="M3 5v14"></path><path d="M8 5v14"></path><path d="M12 5v14"></path><path d="M17 5v14"></path><path d="M21 5v14"></path></svg>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-label-md text-label-md rounded-DEFAULT py-sm pl-10 pr-sm focus:outline-none focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant caret-[#2fd9f4]" id="eq-serial" name="eq-serial" placeholder="S/N ou Service Tag" type="text">
+</div>
+</div>
+</div>
+</fieldset>
+<hr class="border-[#333333]">
+<!-- Section 2: Hardware Specifications -->
+<fieldset class="flex flex-col gap-md">
+<legend class="font-label-md text-label-md text-primary uppercase tracking-wider mb-sm flex items-center gap-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            2. Spécifications Matérielles
+                        </legend>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Manufacturer -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-manufacturer">Fabricant</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="building-2" aria-hidden="true" class="lucide lucide-building-2 w-4 h-4"><path d="M10 12h4"></path><path d="M10 8h4"></path><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path></svg>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-body-sm text-body-sm rounded-DEFAULT py-sm pl-10 pr-sm focus:outline-none focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant caret-[#2fd9f4]" id="eq-manufacturer" name="eq-manufacturer" placeholder="ex: Dell, Cisco, Apple" type="text">
+</div>
+</div>
+<!-- Model -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-model">Modèle</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="cpu" aria-hidden="true" class="lucide lucide-cpu w-4 h-4"><path d="M12 20v2"></path><path d="M12 2v2"></path><path d="M17 20v2"></path><path d="M17 2v2"></path><path d="M2 12h2"></path><path d="M2 17h2"></path><path d="M2 7h2"></path><path d="M20 12h2"></path><path d="M20 17h2"></path><path d="M20 7h2"></path><path d="M7 20v2"></path><path d="M7 2v2"></path><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="8" y="8" width="8" height="8" rx="1"></rect></svg>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-body-sm text-body-sm rounded-DEFAULT py-sm pl-10 pr-sm focus:outline-none focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant caret-[#2fd9f4]" id="eq-model" name="eq-model" placeholder="ex: PowerEdge R740" type="text">
+</div>
+</div>
+<!-- MAC Address -->
+<div class="flex flex-col gap-xs md:col-span-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-mac">Adresse MAC (Principale)</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="network" aria-hidden="true" class="lucide lucide-network w-4 h-4"><rect x="16" y="16" width="6" height="6" rx="1"></rect><rect x="2" y="16" width="6" height="6" rx="1"></rect><rect x="9" y="2" width="6" height="6" rx="1"></rect><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"></path><path d="M12 12V8"></path></svg>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-label-md text-label-md uppercase rounded-DEFAULT py-sm pl-10 pr-sm focus:outline-none focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant caret-[#2fd9f4] tracking-widest" id="eq-mac" name="eq-mac" placeholder="00:1A:2B:3C:4D:5E" type="text">
+</div>
+</div>
+</div>
+</fieldset>
+<hr class="border-[#333333]">
+<!-- Section 3: Procurement & Status -->
+<fieldset class="flex flex-col gap-md">
+<legend class="font-label-md text-label-md text-primary uppercase tracking-wider mb-sm flex items-center gap-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            3. Acquisition &amp; Statut
+                        </legend>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Date of Acquisition -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-date">Date d'Acquisition</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="calendar" aria-hidden="true" class="lucide lucide-calendar w-4 h-4"><path d="M8 2v3"></path><path d="M16 2v3"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path></svg>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-body-sm text-body-sm rounded-DEFAULT py-sm pl-10 pr-sm focus:outline-none focus:ring-0 focus:border-primary transition-colors [color-scheme:dark]" id="eq-date" name="eq-date" type="date">
+</div>
+</div>
+<!-- Unit Cost -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-cost">Coût Unitaire</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="circle-dollar-sign" aria-hidden="true" class="lucide lucide-circle-dollar-sign w-4 h-4"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-label-md text-label-md rounded-DEFAULT py-sm pl-10 pr-sm focus:outline-none focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant caret-[#2fd9f4] text-right" id="eq-cost" min="0" name="eq-cost" placeholder="0.00" step="0.01" type="number">
+</div>
+</div>
+<!-- Initial Status -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-status">Statut Initial <span class="text-error">*</span></label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="activity" aria-hidden="true" class="lucide lucide-activity w-4 h-4"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"></path></svg>
+</div>
+<select class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-body-sm text-body-sm rounded-DEFAULT py-sm pl-10 pr-sm appearance-none focus:outline-none focus:ring-0 focus:border-primary transition-colors cursor-pointer" id="eq-status" name="eq-status">
+<option value="operational">Operational</option>
+<option selected="" value="storage">In Storage</option>
+<option value="configuration">Under Configuration</option>
+</select>
+<div class="absolute inset-y-0 right-0 pr-sm flex items-center pointer-events-none text-outline">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-down" aria-hidden="true" class="lucide lucide-chevron-down w-4 h-4"><path d="m6 9 6 6 6-6"></path></svg>
+</div>
+</div>
+</div>
+</div>
+</fieldset>
+<hr class="border-[#333333]">
+<!-- Section 4: Initial Assignment -->
+<fieldset class="flex flex-col gap-md pb-md">
+<legend class="font-label-md text-label-md text-primary uppercase tracking-wider mb-sm flex items-center gap-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary opacity-50"></span>
+                            4. Assignation Initiale (Optionnel)
+                        </legend>
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="eq-assignment">Rechercher un Département ou Utilisateur</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" aria-hidden="true" class="lucide lucide-search w-4 h-4"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface font-body-sm text-body-sm rounded-DEFAULT py-sm pl-10 pr-sm focus:outline-none focus:ring-0 focus:border-primary transition-colors placeholder:text-outline-variant caret-[#2fd9f4]" id="eq-assignment" name="eq-assignment" placeholder="Tapez un nom pour rechercher..." type="text">
+<!-- Simulated Dropdown for visual completeness -->
+<div class="absolute top-full left-0 right-0 mt-xs bg-[#1A1A1A] border border-[#333333] rounded-DEFAULT shadow-lg hidden z-10">
+<div class="p-sm text-body-sm text-on-surface-variant text-center">Appuyez sur Entrée pour rechercher</div>
+</div>
+</div>
+</div>
+</fieldset>
+</form>
+</div>
+<!-- Modal Footer (Actions) -->
+<div class="px-gutter py-md border-t border-[#333333] bg-[#262626] flex justify-end items-center gap-md z-10">
+<button class="px-lg py-2 rounded-DEFAULT font-label-md text-label-md text-on-surface border border-transparent hover:bg-surface-variant transition-colors focus:outline-none focus:ring-2 focus:ring-outline" type="button">
+                    Annuler
+                </button>
+<button class="px-lg py-2 rounded-DEFAULT font-label-md text-label-md bg-[#005ac2] text-white hover:bg-[#004395] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-[#005ac2] focus:ring-offset-2 focus:ring-offset-[#262626]" form="new-equipment-form" type="submit">
+                    Enregistrer l'Actif
+                </button>
+</div>
+</div>
+</div>
+<script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+
+
+</body></html>

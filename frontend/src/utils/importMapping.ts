@@ -1,4 +1,5 @@
 // Logique pure de l'import d'équipements (validation du fichier, mapping des colonnes) : testable sans navigateur.
+import type { ImportUnassignedReason } from '../services/api';
 
 export const MAX_IMPORT_FILE_BYTES = 5 * 1024 * 1024;
 export const IMPORT_EXTENSIONS = ['.csv', '.xlsx'];
@@ -18,6 +19,10 @@ export const IMPORT_FIELD_LABELS: Record<string, string> = {
   category: 'Catégorie',
   supplier: 'Fournisseur',
   quantity: 'Quantité',
+  condition: 'État (fonctionnel ou non)',
+  commissionedAt: 'Date de mise en service',
+  decommissionedAt: 'Date de mise hors service',
+  assigneeName: 'Mis à la disposition de',
 };
 
 export const fieldLabel = (field: string) => IMPORT_FIELD_LABELS[field] ?? field;
@@ -52,7 +57,8 @@ export const findDuplicateFields = (mapping: ColumnMapping): Record<string, stri
   const firstHeaderByField = new Map<string, string>();
   const duplicates: Record<string, string> = {};
   for (const [header, field] of Object.entries(mapping)) {
-    if (!field) continue;
+    // Plusieurs colonnes peuvent alimenter les notes : le serveur les réunit
+    if (!field || field === 'notes') continue;
     const first = firstHeaderByField.get(field);
     if (first === undefined) firstHeaderByField.set(field, header);
     else duplicates[header] = first;
@@ -60,10 +66,22 @@ export const findDuplicateFields = (mapping: ColumnMapping): Record<string, stri
   return duplicates;
 };
 
-// Le serveur déduit le nom de « marque + modèle » s'il n'y a pas de colonne nom
+// Le serveur déduit le nom de « marque + modèle » s'il n'y a pas de colonne nom, et à défaut de la catégorie
 export const hasNameSource = (mapping: ColumnMapping): boolean => {
   const fields = new Set(Object.values(mapping).filter(Boolean));
-  return fields.has('name') || fields.has('brand') || fields.has('model');
+  return fields.has('name') || fields.has('brand') || fields.has('model') || fields.has('category');
+};
+
+// Phrases décrivant comment le fichier a été lu ; vide quand l'en-tête est en ligne 1 et qu'aucune ligne n'est ignorée
+export const readingNotes = (info: { headerRow?: number; ignoredRowCount?: number }): string[] => {
+  const notes: string[] = [];
+  if (info.headerRow && info.headerRow > 1) notes.push(`En-tête détecté en ligne ${info.headerRow} : les lignes au-dessus sont ignorées.`);
+  const ignored = info.ignoredRowCount ?? 0;
+  if (ignored > 0) {
+    notes.push(`${ignored} ligne${ignored > 1 ? 's' : ''} vide${ignored > 1 ? 's' : ''} ignorée${ignored > 1 ? 's' : ''}.`);
+  }
+  if (notes.length) notes.push('La lecture s’arrête à une ligne « LISTE DES VALEURS… ».');
+  return notes;
 };
 
 // Le corps `mapping` envoyé à l'import : uniquement les colonnes associées à un champ
@@ -86,6 +104,19 @@ export const parseImportErrors = (details: unknown): ImportRowError[] => {
     return [];
   });
 };
+
+// Raisons pour lesquelles un bénéficiaire nommé dans le fichier n'a pas été affecté (réponse d'import)
+export const UNASSIGNED_REASON_LABELS: Record<ImportUnassignedReason, string> = {
+  USER_NOT_FOUND: 'Utilisateur introuvable',
+  USER_AMBIGUOUS: 'Plusieurs utilisateurs portent ce nom',
+  USER_INACTIVE: 'Utilisateur désactivé',
+  EQUIPMENT_TO_COMPLETE: 'Équipement à compléter avant de pouvoir être affecté',
+  ASSIGNMENT_REFUSED: 'Affectation refusée (droits insuffisants ou équipement indisponible)',
+  ASSIGNMENT_UNAVAILABLE: "Service d'affectation indisponible",
+};
+
+export const unassignedReasonLabel = (reason: string) =>
+  UNASSIGNED_REASON_LABELS[reason as ImportUnassignedReason] ?? reason;
 
 export const exportFilename = (format: 'csv' | 'xlsx', now: Date = new Date()) =>
   `equipements-${now.toISOString().slice(0, 10)}.${format}`;

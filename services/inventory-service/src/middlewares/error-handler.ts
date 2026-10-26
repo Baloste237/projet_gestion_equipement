@@ -19,6 +19,6 @@ export const errorHandler = (
   return res.status(500).json({
     success: false,
     code: "INTERNAL_ERROR",
-    message: err.message || "Une erreur interne est survenue",
+    message: "Une erreur interne est survenue",
   });
 };

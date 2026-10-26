@@ -10,25 +10,28 @@ datasource db {
 }
 
 model Equipment {
-  id              String    @id @default(uuid())
-  name            String
-  serialNumber    String    @unique
-  status          String    @default("AVAILABLE")
-  categoryId      String
-  category        Category  @relation(fields: [categoryId], references: [id])
-  supplierId      String?
-  supplier        Supplier? @relation(fields: [supplierId], references: [id])
-  imageUrl        String?
-  barcode         String?
-  brand           String?
-  model           String?
-  location        String?
-  purchaseDate    DateTime?
-  purchasePrice   Decimal?  @db.Decimal(12, 2)
-  warrantyEndDate DateTime?
-  notes           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id               String    @id @default(uuid())
+  name             String
+  serialNumber     String    @unique
+  status           String    @default("AVAILABLE")
+  categoryId       String
+  category         Category  @relation(fields: [categoryId], references: [id])
+  supplierId       String?
+  supplier         Supplier? @relation(fields: [supplierId], references: [id])
+  imageUrl         String?
+  barcode          String?
+  brand            String?
+  model            String?
+  location         String?
+  purchaseDate     DateTime?
+  purchasePrice    Decimal?  @db.Decimal(12, 2)
+  warrantyEndDate  DateTime?
+  notes            String?
+  condition        String    @default("FONCTIONNEL") // FONCTIONNEL | NON_FONCTIONNEL, indépendant du statut
+  commissionedAt   DateTime?
+  decommissionedAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model Category {

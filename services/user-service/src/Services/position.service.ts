@@ -1,6 +1,7 @@
 import { positionRepository } from "../Repositories/position.repository";
 import { departmentRepository } from "../Repositories/departmentRepository";
 import { assignmentServiceClient } from "../clients/assignment-service.client";
+import { auditPublisher } from "../clients/audit-publisher.client";
 import { AppError } from "../errors/app-error";
 import { CreatePositionDTO, UpdatePositionDTO } from "../Types/position.type";
 
@@ -72,5 +73,18 @@ export const positionService = {
       );
     }
     return positionRepository.delete(id);
+  },
+
+  // Supprime tous les postes ; les utilisateurs rattachés sont détachés automatiquement (SetNull Prisma)
+  purgeAll: async (performedBy: string) => {
+    const result = await positionRepository.purgeAll();
+    void auditPublisher.publish({
+      action: "POSITION_LIST_PURGED",
+      entityType: "Position",
+      entityId: "all",
+      performedBy,
+      metadata: { deletedCount: result.count },
+    });
+    return result;
   },
 };

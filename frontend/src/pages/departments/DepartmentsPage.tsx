@@ -4,8 +4,11 @@ import { departmentService, type Department } from '../../services/api';
 import { DepartmentModal } from './DepartmentModal';
 import { Button } from '../../components/ui/Button';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { ConfirmPasswordPurgeModal } from '../../components/ui/ConfirmPasswordPurgeModal';
+import { readIsAdmin } from '../../utils/session';
 
 export const DepartmentsPage: React.FC = () => {
+  const isAdmin = readIsAdmin();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +29,11 @@ export const DepartmentsPage: React.FC = () => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+
+  // Purge state
+  const [isPurgeModalOpen, setIsPurgeModalOpen] = useState(false);
+  const [purgeLoading, setPurgeLoading] = useState(false);
+  const [purgeError, setPurgeError] = useState<string | null>(null);
 
   const fetchDepartments = async () => {
     setLoading(true);
@@ -67,6 +75,24 @@ export const DepartmentsPage: React.FC = () => {
       console.error(`Erreur ${action} département:`, err);
     } finally {
       setConfirmModalState({ isOpen: false, dept: null, action: 'status' });
+    }
+  };
+
+  const handlePurge = async (password: string) => {
+    try {
+      setPurgeLoading(true);
+      setPurgeError(null);
+      await departmentService.purge(password);
+      setIsPurgeModalOpen(false);
+      fetchDepartments();
+    } catch (err: any) {
+      setPurgeError(
+        err.response?.data?.message ||
+        err.response?.data?.error?.message ||
+        'Erreur lors du vidage des départements'
+      );
+    } finally {
+      setPurgeLoading(false);
     }
   };
 
@@ -119,15 +145,31 @@ export const DepartmentsPage: React.FC = () => {
           </select>
         </div>
 
-        <Button
-          onClick={() => {
-            setEditingDepartment(null);
-            setIsModalOpen(true);
-          }}
-          icon={<span className="material-symbols-outlined text-xl">add_business</span>}
-        >
-          Nouveau Département
-        </Button>
+        <div className="flex items-center gap-3">
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => {
+                setPurgeError(null);
+                setIsPurgeModalOpen(true);
+              }}
+              className="px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-400 font-medium rounded-lg text-sm flex items-center justify-center gap-2 hover:bg-red-500/20 hover:border-red-500/50 transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">delete_sweep</span>
+              <span>Vider la liste</span>
+            </button>
+          )}
+
+          <Button
+            onClick={() => {
+              setEditingDepartment(null);
+              setIsModalOpen(true);
+            }}
+            icon={<span className="material-symbols-outlined text-xl">add_business</span>}
+          >
+            Nouveau Département
+          </Button>
+        </div>
       </div>
 
       {/* Grid of Departments */}
@@ -257,6 +299,16 @@ export const DepartmentsPage: React.FC = () => {
         confirmText={confirmModalState.action === 'status' ? 'Changer le statut' : 'Supprimer le département'}
         cancelText="Annuler"
         variant={confirmModalState.action === 'status' ? 'warning' : 'danger'}
+      />
+
+      <ConfirmPasswordPurgeModal
+        isOpen={isPurgeModalOpen}
+        onClose={() => setIsPurgeModalOpen(false)}
+        onConfirm={handlePurge}
+        title="Vider la liste des départements"
+        description="Cette action supprimera tous les départements. Les utilisateurs qui y étaient rattachés seront conservés et basculeront automatiquement sans département."
+        loading={purgeLoading}
+        error={purgeError}
       />
     </AppLayout>
   );

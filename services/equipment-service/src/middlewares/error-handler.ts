@@ -13,6 +13,7 @@ export const errorHandler = (
   if (err instanceof multer.MulterError || err?.message === "INVALID_FILE_TYPE") {
     return res.status(400).json({ success: false, message: err.code || err.message });
   }
+  // Le détail reste dans les journaux serveur : le client ne reçoit qu'un message générique
   console.error(err.stack);
-  res.status(500).json({ success: false, message: err.message || "Internal Server Error" });
+  res.status(500).json({ success: false, message: "Une erreur interne est survenue" });
 };

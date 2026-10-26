@@ -6,16 +6,25 @@ export interface EquipmentSnapshot {
   status: string;
   categoryId: string;
   categoryName: string | null;
+  condition: string;
+  commissionedAt: string | null;
+  decommissionedAt: string | null;
 }
 
 export const toEquipmentSnapshot = (equipment: {
   status: string;
   categoryId: string;
   category?: { name: string } | null;
+  condition?: string;
+  commissionedAt?: Date | null;
+  decommissionedAt?: Date | null;
 }): EquipmentSnapshot => ({
   status: equipment.status,
   categoryId: equipment.categoryId,
   categoryName: equipment.category?.name ?? null,
+  condition: equipment.condition ?? "FONCTIONNEL",
+  commissionedAt: equipment.commissionedAt?.toISOString() ?? null,
+  decommissionedAt: equipment.decommissionedAt?.toISOString() ?? null,
 });
 
 export const eventPublisher = {

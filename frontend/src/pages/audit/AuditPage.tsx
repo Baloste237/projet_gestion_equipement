@@ -1,47 +1,98 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppLayout } from '../../components/layout/AppLayout';
-import { auditLogService, type AuditLog } from '../../services/api';
+import { auditLogService, type AuditCategory, type AuditListParams, type AuditLog, type AuditSummary } from '../../services/api';
 import { AuditLogDetailModal } from './AuditLogDetailModal';
 import { Button } from '../../components/ui/Button';
+import { Pagination } from '../../components/ui/Pagination';
+import { SEARCH_DEBOUNCE_MS } from '../../utils/equipmentList';
+import type { PageMeta } from '../../utils/listParams';
+import { clampPage, readStoredPageSize, storePageSize } from '../../utils/pagination';
 
 export const AuditPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Pagination côté serveur : la liste affichée est la page courante ; les compteurs portent sur tout le journal
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(() => readStoredPageSize());
+  const [meta, setMeta] = useState<PageMeta | null>(null);
+  const [summary, setSummary] = useState<AuditSummary | null>(null);
+  // Seule la réponse de la dernière requête est affichée
+  const latestRequest = useRef(0);
+
   // Live Stream state
   const [isLiveStream, setIsLiveStream] = useState(true);
 
-  // Filters state
+  // Filters state : filtres appliqués par le serveur ; la recherche l'est après une courte pause de frappe
+  const [searchInput, setSearchInput] = useState('');
   const [searchActor, setSearchActor] = useState('');
+  const appliedSearch = useRef('');
   const [actionCategory, setActionCategory] = useState('ALL');
   const [selectedDate, setSelectedDate] = useState('');
 
   // Selected Log for detail modal
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  const fetchLogs = async (quiet = false) => {
+  const params: AuditListParams = {
+    page,
+    pageSize,
+    q: searchActor,
+    category: actionCategory === 'ALL' ? undefined : (actionCategory as AuditCategory),
+    date: selectedDate,
+  };
+  // L'actualisation périodique recharge la page et les filtres courants (et non ceux du moment où elle a été programmée)
+  const paramsRef = useRef(params);
+  useEffect(() => {
+    paramsRef.current = params;
+  });
+
+  const fetchLogs = async (quiet = false, requested: AuditListParams = paramsRef.current) => {
+    const requestId = ++latestRequest.current;
     if (!quiet) setLoading(true);
     setError(null);
     try {
-      const res = await auditLogService.getAll();
-      setLogs(res.data?.data || []);
+      const res = await auditLogService.getAll(requested);
+      if (requestId !== latestRequest.current) return;
+      const loaded: AuditLog[] = res.data?.data || [];
+      const loadedMeta: PageMeta | null = res.data?.meta ?? null;
+      setLogs(loaded);
+      setMeta(loadedMeta);
+      if (res.data?.summary) setSummary(res.data.summary);
+      // La page demandée n'existe plus : retour à la dernière page
+      if (loaded.length === 0 && loadedMeta && loadedMeta.total > 0 && (requested.page ?? 1) > 1) {
+        setPage(clampPage(requested.page ?? 1, loadedMeta.total, requested.pageSize ?? pageSize));
+      }
     } catch (err: any) {
+      if (requestId !== latestRequest.current) return;
       console.error('Erreur chargement logs audit:', err);
       if (err.response?.status === 401 || err.response?.status === 403) {
         setIsLiveStream(false);
       }
       if (!quiet) setError('Impossible de charger les journaux d\'audit.');
     } finally {
-      if (!quiet) setLoading(false);
+      if (!quiet && requestId === latestRequest.current) setLoading(false);
     }
   };
 
+  // Rechargement à chaque changement de page, de taille ou de filtre
   useEffect(() => {
-    fetchLogs();
-  }, []);
+    fetchLogs(false, { page, pageSize, q: searchActor, category: actionCategory === 'ALL' ? undefined : (actionCategory as AuditCategory), date: selectedDate });
+  }, [page, pageSize, searchActor, actionCategory, selectedDate]);
 
-  // Live stream auto refresh every 5 seconds if active
+  // La recherche est envoyée après une pause de frappe, et ramène à la première page
+  useEffect(() => {
+    const next = searchInput.trim();
+    const timer = setTimeout(() => {
+      if (next === appliedSearch.current) return;
+      appliedSearch.current = next;
+      setSearchActor(next);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Live stream auto refresh every 5 seconds if active, sur la page et les filtres courants
   useEffect(() => {
     if (!isLiveStream) return;
     const interval = setInterval(() => {
@@ -50,74 +101,19 @@ export const AuditPage: React.FC = () => {
     return () => clearInterval(interval);
   }, [isLiveStream]);
 
-  // Compute Bento KPI Stats
-  const stats = useMemo(() => {
-    const total = logs.length;
+  const changePageSize = (size: number) => {
+    storePageSize(size);
+    setPageSize(size);
+    setPage(1);
+  };
 
-    const authCount = logs.filter(
-      (l) =>
-        l.action.includes('AUTH') ||
-        l.action.includes('LOGIN') ||
-        l.action.includes('LOGOUT')
-    ).length;
-
-    const mutationCount = logs.filter(
-      (l) =>
-        l.action.includes('CREATE') ||
-        l.action.includes('UPDATE') ||
-        l.action.includes('DELETE') ||
-        l.action.includes('TRANSFER') ||
-        l.action.includes('RETURN')
-    ).length;
-
-    const failedCount = logs.filter(
-      (l) =>
-        l.action.includes('FAILED') ||
-        l.metadata?.status === 'FAILED' ||
-        l.metadata?.success === false
-    ).length;
-
-    const successRate = total > 0 ? Math.round(((total - failedCount) / total) * 100) : 100;
-
-    return { total, authCount, mutationCount, failedCount, successRate };
-  }, [logs]);
-
-  // Filtered logs
-  const filteredLogs = useMemo(() => {
-    return logs.filter((log) => {
-      const actorMatch =
-        log.performedBy.toLowerCase().includes(searchActor.toLowerCase()) ||
-        log.entityId.toLowerCase().includes(searchActor.toLowerCase()) ||
-        log.id.toLowerCase().includes(searchActor.toLowerCase());
-
-      let categoryMatch = true;
-      if (actionCategory === 'AUTHENTICATION') {
-        categoryMatch =
-          log.action.includes('AUTH') ||
-          log.action.includes('LOGIN') ||
-          log.action.includes('LOGOUT');
-      } else if (actionCategory === 'DATA_MUTATION') {
-        categoryMatch =
-          log.action.includes('CREATE') ||
-          log.action.includes('UPDATE') ||
-          log.action.includes('DELETE') ||
-          log.action.includes('TRANSFER') ||
-          log.action.includes('RETURN');
-      } else if (actionCategory === 'SYSTEM_EVENT') {
-        categoryMatch =
-          log.action.includes('SYSTEM') ||
-          log.action.includes('MAINTENANCE') ||
-          log.action.includes('INVENTORY');
-      }
-
-      let dateMatch = true;
-      if (selectedDate) {
-        dateMatch = log.createdAt.startsWith(selectedDate);
-      }
-
-      return actorMatch && categoryMatch && dateMatch;
-    });
-  }, [logs, searchActor, actionCategory, selectedDate]);
+  // Compteurs de tout le journal (sans tenir compte des filtres), calculés par le serveur
+  const stats = {
+    total: summary?.total ?? 0,
+    authCount: summary?.authCount ?? 0,
+    mutationCount: summary?.mutationCount ?? 0,
+    successRate: summary && summary.total > 0 ? Math.round(((summary.total - summary.failedCount) / summary.total) * 100) : 100,
+  };
 
   const formatDate = (dateStr: string) => {
     try {
@@ -134,19 +130,27 @@ export const AuditPage: React.FC = () => {
     }
   };
 
-  const exportReport = () => {
-    if (filteredLogs.length === 0) {
-      alert('Aucun log à exporter.');
-      return;
-    }
+  // Exporte tout le journal correspondant aux filtres, et non seulement la page affichée (appel sans page)
+  const exportReport = async () => {
+    try {
+      const res = await auditLogService.getAll({ q: searchActor, category: params.category, date: selectedDate });
+      const all: AuditLog[] = res.data?.data || [];
+      if (all.length === 0) {
+        alert('Aucun log à exporter.');
+        return;
+      }
 
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredLogs, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `audit-report-${new Date().toISOString().substring(0, 10)}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(all, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `audit-report-${new Date().toISOString().substring(0, 10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    } catch (err) {
+      console.error('Erreur export audit:', err);
+      alert("L'export a échoué : aucun fichier n'a été téléchargé.");
+    }
   };
 
   const getActionBadgeClass = (action: string) => {
@@ -274,8 +278,8 @@ export const AuditPage: React.FC = () => {
               <input
                 type="text"
                 placeholder="Acteur, ID log, utilisateur..."
-                value={searchActor}
-                onChange={(e) => setSearchActor(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="w-full bg-[#0D0D0D] border border-[#333333] rounded-lg py-2 pl-9 pr-3 text-body-sm text-on-surface focus:outline-none focus:border-primary"
               />
             </div>
@@ -283,7 +287,10 @@ export const AuditPage: React.FC = () => {
             {/* Category Filter */}
             <select
               value={actionCategory}
-              onChange={(e) => setActionCategory(e.target.value)}
+              onChange={(e) => {
+                setActionCategory(e.target.value);
+                setPage(1);
+              }}
               className="bg-[#0D0D0D] border border-[#333333] rounded-lg py-2 px-3 text-body-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer"
             >
               <option value="ALL">Toutes les Actions</option>
@@ -296,13 +303,16 @@ export const AuditPage: React.FC = () => {
             <input
               type="date"
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setPage(1);
+              }}
               className="bg-[#0D0D0D] border border-[#333333] rounded-lg py-2 px-3 text-body-sm text-on-surface focus:outline-none focus:border-primary [color-scheme:dark]"
             />
           </div>
 
           <span className="font-label-sm text-label-sm text-on-surface-variant">
-            {filteredLogs.length} événement{filteredLogs.length > 1 ? 's' : ''} affiché{filteredLogs.length > 1 ? 's' : ''}
+            {meta?.total ?? logs.length} événement{(meta?.total ?? logs.length) > 1 ? 's' : ''} correspondant{(meta?.total ?? logs.length) > 1 ? 's' : ''}
           </span>
         </div>
 
@@ -321,7 +331,7 @@ export const AuditPage: React.FC = () => {
                 Réessayer
               </Button>
             </div>
-          ) : filteredLogs.length === 0 ? (
+          ) : logs.length === 0 ? (
             <div className="p-12 text-center text-on-surface-variant flex flex-col items-center gap-2">
               <span className="material-symbols-outlined text-4xl opacity-50">receipt_long</span>
               <p className="font-headline-sm text-headline-sm text-on-surface">Aucun journal d'audit ne correspond à vos filtres</p>
@@ -353,7 +363,7 @@ export const AuditPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="font-body-sm text-body-sm divide-y divide-[#262626]">
-                  {filteredLogs.map((log) => {
+                  {logs.map((log) => {
                     const httpCode = log.metadata?.httpStatus || (log.action.includes('FAILED') ? 401 : 200);
                     const isSuccessCode = httpCode >= 200 && httpCode < 300;
                     const isFailed =
@@ -413,6 +423,15 @@ export const AuditPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          )}
+          {!loading && !error && (
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={meta?.total ?? 0}
+              onPageChange={setPage}
+              onPageSizeChange={changePageSize}
+            />
           )}
         </div>
       </div>

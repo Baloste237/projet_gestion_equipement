@@ -4,12 +4,19 @@ import {
   type Category,
   type Supplier,
   type EquipmentStatus,
+  type EquipmentCondition,
   type CreateEquipmentDTO,
   type UpdateEquipmentDTO,
   categoryService,
   supplierService,
   equipmentService,
 } from '../../services/api';
+import {
+  EQUIPMENT_CONDITIONS,
+  EQUIPMENT_CONDITION_LABELS,
+  toDateInputValue,
+  validateServiceDates,
+} from '../../utils/equipmentLifecycle';
 
 interface EquipmentModalProps {
   isOpen: boolean;
@@ -34,6 +41,9 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
   const [categoryId, setCategoryId] = useState('');
   const [supplierId, setSupplierId] = useState('');
   const [status, setStatus] = useState<EquipmentStatus>('AVAILABLE');
+  const [condition, setCondition] = useState<EquipmentCondition>('FONCTIONNEL');
+  const [commissionedAt, setCommissionedAt] = useState('');
+  const [decommissionedAt, setDecommissionedAt] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -49,6 +59,9 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
         setCategoryId(equipmentToEdit.categoryId || '');
         setSupplierId(equipmentToEdit.supplierId || '');
         setStatus(equipmentToEdit.status || 'AVAILABLE');
+        setCondition(equipmentToEdit.condition || 'FONCTIONNEL');
+        setCommissionedAt(toDateInputValue(equipmentToEdit.commissionedAt));
+        setDecommissionedAt(toDateInputValue(equipmentToEdit.decommissionedAt));
         setImagePreview(equipmentToEdit.imageUrl || null);
       } else {
         setName('');
@@ -56,6 +69,9 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
         setCategoryId('');
         setSupplierId('');
         setStatus('AVAILABLE');
+        setCondition('FONCTIONNEL');
+        setCommissionedAt('');
+        setDecommissionedAt('');
         setImagePreview(null);
       }
       setImageFile(null);
@@ -103,6 +119,12 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
       return;
     }
 
+    const datesError = validateServiceDates(commissionedAt, decommissionedAt);
+    if (datesError) {
+      setError(datesError);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -116,6 +138,9 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
           categoryId,
           supplierId: supplierId || null,
           status,
+          condition,
+          commissionedAt: commissionedAt || null,
+          decommissionedAt: decommissionedAt || null,
         };
         await equipmentService.update(equipmentToEdit.id, updatePayload);
         targetId = equipmentToEdit.id;
@@ -126,6 +151,9 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
           categoryId,
           supplierId: supplierId || null,
           status,
+          condition,
+          commissionedAt: commissionedAt || null,
+          decommissionedAt: decommissionedAt || null,
         };
         const res = await equipmentService.create(createPayload);
         targetId = res.data.data.id;
@@ -326,6 +354,60 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
                       expand_more
                     </span>
                   </div>
+                </div>
+
+                {/* Condition */}
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="eq-condition" className="text-xs font-medium text-on-surface-variant">
+                    État de fonctionnement
+                  </label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant text-lg">
+                      build_circle
+                    </span>
+                    <select
+                      id="eq-condition"
+                      value={condition}
+                      onChange={(e) => setCondition(e.target.value as EquipmentCondition)}
+                      className="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface text-sm rounded py-2 pl-10 pr-8 appearance-none focus:outline-none focus:border-primary transition-colors cursor-pointer"
+                    >
+                      {EQUIPMENT_CONDITIONS.map((value) => (
+                        <option key={value} value={value}>
+                          {EQUIPMENT_CONDITION_LABELS[value]}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant text-lg pointer-events-none">
+                      expand_more
+                    </span>
+                  </div>
+                </div>
+
+                {/* Service dates */}
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="eq-commissioned" className="text-xs font-medium text-on-surface-variant">
+                    Date de mise en service
+                  </label>
+                  <input
+                    id="eq-commissioned"
+                    type="date"
+                    value={commissionedAt}
+                    onChange={(e) => setCommissionedAt(e.target.value)}
+                    className="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface text-sm rounded py-2 px-3 focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="eq-decommissioned" className="text-xs font-medium text-on-surface-variant">
+                    Date de mise hors service
+                  </label>
+                  <input
+                    id="eq-decommissioned"
+                    type="date"
+                    value={decommissionedAt}
+                    min={commissionedAt || undefined}
+                    onChange={(e) => setDecommissionedAt(e.target.value)}
+                    className="w-full bg-[#0D0D0D] border border-[#333333] text-on-surface text-sm rounded py-2 px-3 focus:outline-none focus:border-primary transition-colors"
+                  />
                 </div>
               </div>
             </fieldset>

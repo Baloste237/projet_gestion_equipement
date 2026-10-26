@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Pagination } from '../../components/ui/Pagination';
+import { useClientPagination } from '../../hooks/useClientPagination';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { assignmentService, type Assignment, type AssigneeType } from '../../services/api';
 import { AssignmentModal } from './AssignmentModal';
@@ -92,6 +94,9 @@ export const AssignmentsPage: React.FC = () => {
       return matchesSearch && matchesStatus && matchesType;
     });
   }, [assignments, searchTerm, statusFilter, typeFilter]);
+
+  // Pagination dans le navigateur ; les statistiques restent calculées sur toutes les affectations
+  const paging = useClientPagination(filteredAssignments, [searchTerm, statusFilter, typeFilter].join('|'));
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return 'N/A';
@@ -266,7 +271,7 @@ export const AssignmentsPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/30 text-body-sm text-on-surface">
-                  {filteredAssignments.map((asgn) => {
+                  {paging.pageItems.map((asgn) => {
                     const assignee = describeAssignee(asgn);
                     const eqName = asgn.equipment?.name || 'Équipement';
                     const eqSerial = asgn.equipment?.serialNumber || asgn.equipmentId.substring(0, 8);
@@ -408,6 +413,13 @@ export const AssignmentsPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            <Pagination
+              page={paging.page}
+              pageSize={paging.pageSize}
+              total={paging.total}
+              onPageChange={paging.setPage}
+              onPageSizeChange={paging.setPageSize}
+            />
           </div>
         )}
       </div>

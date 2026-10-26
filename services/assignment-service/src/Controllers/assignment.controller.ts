@@ -41,6 +41,23 @@ export const assignmentController = {
     }
   },
 
+  getActiveSummary: async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.status(200).json({ success: true, data: await assignmentService.listActiveSummary() });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  getActiveAssignee: async (req: Request<{ equipmentId: string }>, res: Response, next: NextFunction) => {
+    try {
+      const data = await assignmentService.getActiveAssignee(req.params.equipmentId);
+      res.status(200).json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   getById: async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
       const assignment = await assignmentService.getById(req.params.id);
@@ -62,6 +79,15 @@ export const assignmentController = {
   return: async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
       const result = await assignmentService.return(req.params.id, req.body);
+      res.status(200).json({ success: true, data: result });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  purgeAllInternal: async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await assignmentService.purgeAll();
       res.status(200).json({ success: true, data: result });
     } catch (err) {
       next(err);

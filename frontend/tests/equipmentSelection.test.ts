@@ -9,6 +9,7 @@ import {
   isSelectable,
   parseBulkRefusals,
   pruneSelection,
+  removeFromSelection,
   selectAllSelectable,
   selectionState,
   successMessage,
@@ -62,6 +63,47 @@ describe('sélection', () => {
   test('pruneSelection retire les équipements disparus ou devenus indisponibles', () => {
     const after = [eq('a'), eq('b', 'ASSIGNED')];
     assert.deepStrictEqual([...pruneSelection(after, new Set(['a', 'b', 'gone']))], ['a']);
+  });
+
+  test('removeFromSelection retire des identifiants précis sans toucher au reste', () => {
+    const selected = new Set(['a', 'b', 'c']);
+    assert.deepStrictEqual([...removeFromSelection(selected, ['b', 'inconnu'])], ['a', 'c']);
+    assert.deepStrictEqual([...selected], ['a', 'b', 'c']);
+  });
+});
+
+describe('sélection sur plusieurs pages', () => {
+  const page1 = [eq('p1-a'), eq('p1-b'), eq('p1-c'), eq('p1-x', 'ASSIGNED')];
+  const page2 = [eq('p2-a'), eq('p2-b'), eq('p2-y', 'IN_MAINTENANCE')];
+
+  test('3 cochés en page 1 puis 2 en page 2 : 5 sélectionnés', () => {
+    let selected = new Set<string>();
+    for (const id of ['p1-a', 'p1-b', 'p1-c']) selected = toggleSelection(selected, id);
+    for (const id of ['p2-a', 'p2-b']) selected = toggleSelection(selected, id);
+    assert.strictEqual(selected.size, 5);
+  });
+
+  test('« tout sélectionner » ne concerne que les disponibles de la page courante et garde le reste', () => {
+    const fromPage1 = selectAllSelectable(page1, new Set());
+    assert.deepStrictEqual([...fromPage1].sort(), ['p1-a', 'p1-b', 'p1-c']);
+    const both = selectAllSelectable(page2, fromPage1);
+    assert.strictEqual(both.size, 5);
+    assert.ok(!both.has('p2-y') && !both.has('p1-x'));
+  });
+
+  test('l’état de la case d’en-tête porte sur la page affichée seulement', () => {
+    const selected = new Set(['p1-a', 'p1-b', 'p1-c']);
+    assert.strictEqual(selectionState(page1, selected), 'all');
+    assert.strictEqual(selectionState(page2, selected), 'none');
+  });
+
+  test('désélectionner la page courante garde la sélection des autres pages', () => {
+    const selected = new Set(['p1-a', 'p1-b', 'p1-c', 'p2-a']);
+    assert.deepStrictEqual([...deselectAll(page1, selected)], ['p2-a']);
+  });
+
+  test('la limite de 200 s’applique au total, toutes pages confondues', () => {
+    assert.strictEqual(exceedsLimit(new Set(Array.from({ length: 201 }, (_, i) => String(i))).size), true);
   });
 });
 

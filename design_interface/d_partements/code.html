@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Departments Management - EQUIP-CORE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#1c1b1b",
+                        "on-surface-variant": "#c2c6d6",
+                        "surface-container": "#20201f",
+                        "surface": "#131313",
+                        "on-tertiary": "#00363e",
+                        "on-secondary": "#2c303a",
+                        "tertiary-container": "#009fb4",
+                        "outline-variant": "#424754",
+                        "background": "#131313",
+                        "on-primary-fixed": "#001a42",
+                        "surface-variant": "#353535",
+                        "inverse-surface": "#e5e2e1",
+                        "on-background": "#e5e2e1",
+                        "tertiary": "#2fd9f4",
+                        "on-primary": "#002e6a",
+                        "inverse-on-surface": "#313030",
+                        "outline": "#8c909f",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-tertiary-fixed": "#001f25",
+                        "surface-container-high": "#2a2a2a",
+                        "on-secondary-fixed-variant": "#434751",
+                        "on-secondary-container": "#b5b8c5",
+                        "on-surface": "#e5e2e1",
+                        "secondary": "#c3c6d3",
+                        "secondary-fixed": "#dfe2ef",
+                        "surface-dim": "#131313",
+                        "tertiary-fixed": "#a2eeff",
+                        "on-tertiary-container": "#002f36",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed": "#181c25",
+                        "on-primary-container": "#00285d",
+                        "secondary-fixed-dim": "#c3c6d3",
+                        "secondary-container": "#454953",
+                        "on-error": "#690005",
+                        "primary-container": "#4d8eff",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "surface-bright": "#393939",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#adc6ff",
+                        "primary-fixed": "#d8e2ff",
+                        "primary": "#adc6ff",
+                        "surface-container-highest": "#353535",
+                        "inverse-primary": "#005ac2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "40px",
+                        "margin": "32px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "base": "8px",
+                        "gutter": "24px",
+                        "xs": "4px",
+                        "xl": "64px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-md": ["JetBrains Mono"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #131313; color: #e5e2e1; }
+        .glass-card {
+            background-color: #1A1A1A;
+            border: 1px solid #262626;
+            border-radius: 0.5rem;
+        }
+        .mini-chart {
+            background: linear-gradient(90deg, #1A1A1A 0%, #1c1b1b 100%);
+            border-bottom: 2px solid #009fb4;
+        }
+    </style>
+</head>
+<body class="font-body-md bg-background text-on-background flex h-screen overflow-hidden">
+<!-- SideNavBar (Desktop) -->
+<nav class="bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant dark:border-outline-variant docked left-0 h-screen w-64 hidden md:flex flex-col p-md gap-base z-40">
+<div class="flex items-center gap-base mb-lg">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-sm">precision_manufacturing</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-primary">System Admin</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Global Operations</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto flex flex-col gap-xs">
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Users</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lan</span>
+<span class="font-label-md text-label-md font-bold">Departments</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">construction</span>
+<span class="font-label-md text-label-md">Equipment</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">assignment_ind</span>
+<span class="font-label-md text-label-md">Assignments</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md text-label-md">Inventory</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">build</span>
+<span class="font-label-md text-label-md">Maintenance</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-label-md text-label-md">Audit</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-md flex flex-col gap-xs">
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-full relative">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant docked full-width top-0 sticky z-50 flex justify-between items-center w-full px-margin h-16">
+<div class="flex items-center gap-md">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface dark:text-on-surface md:hidden">EQUIP-CORE</span>
+<!-- Search (Left aligned as per JSON) -->
+<div class="relative hidden md:block w-64">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-[#0D0D0D] border border-outline-variant rounded text-body-sm pl-8 pr-2 py-1 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none text-on-surface placeholder:text-on-surface-variant" placeholder="Search departments..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="font-label-md text-label-md text-primary dark:text-primary hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors active:scale-95 duration-100 px-sm py-1 rounded">Quick Export</button>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-md py-2 rounded hover:bg-primary-container transition-colors active:scale-95 duration-100 flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">add</span>
+                    Create Department
+                </button>
+<div class="flex items-center gap-sm ml-md border-l border-outline-variant pl-md">
+<button class="text-on-surface-variant hover:text-on-surface transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-high ml-xs overflow-hidden border border-outline-variant">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A macro photography shot of a highly detailed, futuristic glowing blue optical sensor lens acting as a generic user avatar placeholder, set against a deep carbon fiber dark background, dramatic lighting, high tech aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACQmBg8ERC99Bo0HJVfsSJqovxbZdVx7eWgrzy-13Xxo0eMCfdFTah5sZm9uzAeHST7sdQs3t_59QZPpoyPtZcVuVw_jHdZnjovxFqWeIDu8hRgX61ZtXkEUo-JpR0-1lkKCQ7wb9_8VLDJmXyoYUfMznmgqBg7AMPRen5wfemY_ETKaZoltF0VkLyMQktuKCTQBP6e3Lp_CGcIgmgtykjnsLYzpyXLxOk9NoRbkM9-g8OQqYc7zBM"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 overflow-y-auto p-margin md:p-lg">
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-xs">Departments Overview</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage organizational units and view asset distribution.</p>
+</div>
+</div>
+<!-- Bento Grid / Cards Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Dept Card 1 -->
+<div class="glass-card p-md flex flex-col hover:bg-[#1f1f1f] transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">engineering</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Engineering</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: DPT-ENG-01</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-lg">
+<div class="bg-[#0D0D0D] p-sm rounded border border-outline-variant">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Manager</p>
+<p class="font-body-sm text-body-sm text-on-surface">Sarah Jenkins</p>
+</div>
+<div class="bg-[#0D0D0D] p-sm rounded border border-outline-variant">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Employees</p>
+<p class="font-body-sm text-body-sm text-on-surface">142 Active</p>
+</div>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-md">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md text-on-surface-variant">Managed Assets</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">1,204</span>
+</div>
+<div class="h-8 w-full mini-chart rounded opacity-80 mt-sm">
+<!-- Abstract chart representation -->
+<svg height="100%" preserveaspectratio="none" viewbox="0 0 100 20" width="100%">
+<path d="M0,15 L20,12 L40,16 L60,8 L80,10 L100,2" fill="none" stroke="#009fb4" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Dept Card 2 -->
+<div class="glass-card p-md flex flex-col hover:bg-[#1f1f1f] transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">biotech</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Research &amp; Dev</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: DPT-RND-02</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-lg">
+<div class="bg-[#0D0D0D] p-sm rounded border border-outline-variant">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Manager</p>
+<p class="font-body-sm text-body-sm text-on-surface">Dr. A. Chen</p>
+</div>
+<div class="bg-[#0D0D0D] p-sm rounded border border-outline-variant">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Employees</p>
+<p class="font-body-sm text-body-sm text-on-surface">56 Active</p>
+</div>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-md">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md text-on-surface-variant">Managed Assets</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">489</span>
+</div>
+<div class="h-8 w-full mini-chart rounded opacity-80 mt-sm" style="border-bottom-color: #ffb4ab;">
+<svg height="100%" preserveaspectratio="none" viewbox="0 0 100 20" width="100%">
+<path d="M0,5 L20,8 L40,4 L60,12 L80,15 L100,18" fill="none" stroke="#ffb4ab" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Dept Card 3 -->
+<div class="glass-card p-md flex flex-col hover:bg-[#1f1f1f] transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">local_shipping</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Logistics</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: DPT-LOG-03</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-lg">
+<div class="bg-[#0D0D0D] p-sm rounded border border-outline-variant">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Manager</p>
+<p class="font-body-sm text-body-sm text-on-surface">M. Rodriguez</p>
+</div>
+<div class="bg-[#0D0D0D] p-sm rounded border border-outline-variant">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Employees</p>
+<p class="font-body-sm text-body-sm text-on-surface">310 Active</p>
+</div>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-md">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-label-md text-label-md text-on-surface-variant">Managed Assets</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">3,890</span>
+</div>
+<div class="h-8 w-full mini-chart rounded opacity-80 mt-sm" style="border-bottom-color: #009fb4;">
+<svg height="100%" preserveaspectratio="none" viewbox="0 0 100 20" width="100%">
+<path d="M0,18 L20,15 L40,16 L60,10 L80,5 L100,4" fill="none" stroke="#009fb4" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -7,6 +7,12 @@ const userServiceApi = axios.create({
   timeout: 5000,
 });
 
+// user-service exige un jeton : les appels de service à service portent le secret interne
+userServiceApi.interceptors.request.use((config) => {
+  config.headers["x-internal-token"] = process.env.INTERNAL_SERVICE_TOKEN ?? "";
+  return config;
+});
+
 const fetchResource = async (path: string, notFoundCode: ErrorCode) => {
   try {
     const response = await userServiceApi.get(path);

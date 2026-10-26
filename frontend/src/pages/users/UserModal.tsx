@@ -3,6 +3,7 @@ import { userService, departmentService, type Department, type User } from '../.
 import { Button } from '../../components/ui/Button';
 import { COUNTRIES } from '../../data/countries';
 import { getImageUrl } from '../../utils/imageUrl';
+import { accountErrorMessage } from '../../utils/accountErrors';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -102,15 +103,13 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSuccess
           avatarUrl: avatarUrl || undefined,
           isActive,
           status: isActive ? 'ACTIF' : 'INACTIF',
-          authUserId: crypto.randomUUID(),
         });
       }
       onSuccess();
       onClose();
     } catch (err: any) {
       console.error('Erreur sauvegarde utilisateur:', err);
-      const apiError = err.response?.data?.error?.message || err.response?.data?.message || 'Erreur lors de la sauvegarde.';
-      setError(apiError);
+      setError(accountErrorMessage(err, 'Erreur lors de la sauvegarde.'));
     } finally {
       setLoading(false);
     }

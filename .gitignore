@@ -35,3 +35,9 @@ Thumbs.db
 
 # Docker
 **/*.pid
+
+# Local agent artifacts & stitch mockups
+stitch_nexus_asset_manager.zip
+stitch_nexus_asset_manager/
+.agents/
+.claude/

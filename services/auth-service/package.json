@@ -6,6 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "seed:admin": "tsx src/scripts/seed-admin.ts",
     "start": "tsx src/server.ts",
     "build": "tsc",
     "test": "tsx --test tests/**/*.test.ts"

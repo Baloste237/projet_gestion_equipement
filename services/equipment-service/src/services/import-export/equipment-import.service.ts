@@ -1,6 +1,7 @@
 import { prisma } from "../../config/prisma";
 import { HttpError } from "../../errors/http-error";
 import { eventPublisher, toEquipmentSnapshot } from "../../clients/event-publisher.client";
+import { autoAssign } from "./equipment-import-assignment";
 import { readSpreadsheet } from "./spreadsheet.reader";
 import {
   buildEquipmentDrafts,
@@ -8,16 +9,25 @@ import {
   EquipmentDraft,
   IMPORT_FIELDS,
   ImportField,
+  makeHeaderMatcher,
   resolveColumnMapping,
+  resolveNotesHeaders,
 } from "./equipment-row.mapper";
 
 const PREVIEW_ROW_COUNT = 5;
 
-// Lecture commune à l'import et à l'aperçu : mêmes règles, mêmes messages d'erreur
-const readImportSheet = async (file: { buffer: Buffer; originalname: string }) => {
+// Lecture commune à l'import et à l'aperçu : mêmes règles, mêmes messages d'erreur.
+// L'en-tête est détecté (titre possible au-dessus) en tenant compte du mapping fourni.
+const readImportSheet = async (
+  file: { buffer: Buffer; originalname: string },
+  customMapping: Record<string, ImportField> = {}
+) => {
   let sheet;
   try {
-    sheet = await readSpreadsheet(file.buffer, file.originalname);
+    sheet = await readSpreadsheet(file.buffer, file.originalname, {
+      detectHeaderRow: true,
+      isKnownHeader: makeHeaderMatcher(customMapping),
+    });
   } catch {
     throw new HttpError(400, "Fichier illisible : un CSV ou un classeur Excel (.xlsx) est attendu");
   }
@@ -78,7 +88,7 @@ const insertDrafts = (drafts: EquipmentDraft[]) =>
       );
 
       const equipments = await tx.equipment.createManyAndReturn({
-        data: drafts.map(({ categoryName, supplierName, ...equipment }) => ({
+        data: drafts.map(({ categoryName, supplierName, sourceRow, assigneeName, ...equipment }) => ({
           ...equipment,
           categoryId: categoryIds.get(categoryName)!,
           supplierId: supplierName ? supplierIds.get(supplierName)! : null,
@@ -96,11 +106,17 @@ export const equipmentImportService = {
   preview: async (file: { buffer: Buffer; originalname: string }) => {
     const sheet = await readImportSheet(file);
     const detected = resolveColumnMapping(sheet.headers);
-    const suggestedMapping = Object.fromEntries(
+    const suggestedMapping: Record<string, ImportField> = Object.fromEntries(
       (Object.entries(detected) as [ImportField, string][]).map(([field, header]) => [header, field])
     );
+    // Toutes les colonnes de notes sont proposées : l'import les réunit
+    resolveNotesHeaders(sheet.headers).forEach((header) => {
+      suggestedMapping[header] = "notes";
+    });
     return {
       headers: sheet.headers,
+      headerRow: sheet.headerRow,
+      ignoredRowCount: sheet.ignoredRowCount,
       rowCount: sheet.rows.length,
       sampleRows: sheet.rows.slice(0, PREVIEW_ROW_COUNT).map(({ rowNumber, values }) => ({ row: rowNumber, values })),
       suggestedMapping,
@@ -108,12 +124,12 @@ export const equipmentImportService = {
     };
   },
 
-  import: async (file: { buffer: Buffer; originalname: string }, rawMapping?: unknown) => {
+  import: async (file: { buffer: Buffer; originalname: string }, rawMapping?: unknown, authorization?: string) => {
     const customMapping = parseCustomMapping(rawMapping);
-    const sheet = await readImportSheet(file);
+    const sheet = await readImportSheet(file, customMapping);
 
     const mapping = resolveColumnMapping(sheet.headers, customMapping);
-    const { drafts, errors } = buildEquipmentDrafts(sheet.rows, mapping);
+    const { drafts, errors } = buildEquipmentDrafts(sheet.rows, mapping, resolveNotesHeaders(sheet.headers, customMapping));
 
     // Les numéros de série fournis ne doivent pas déjà exister en base
     const providedSerials = drafts.filter((d) => !d.serialNumber.startsWith("TMP-")).map((d) => d.serialNumber);
@@ -137,12 +153,18 @@ export const equipmentImportService = {
         after: toEquipmentSnapshot({ ...equipment, category: { name: categoryNames.get(equipment.categoryId)! } }),
       })
     );
+    // Après la création : l'affectation ne peut jamais annuler l'import, ses échecs sont rapportés
+    const { assignedIds, unassigned } = await autoAssign(drafts, equipments, authorization);
     return {
       mapping,
+      headerRow: sheet.headerRow,
+      ignoredRowCount: sheet.ignoredRowCount,
       rowCount: sheet.rows.length,
       createdCount: equipments.length,
       toCompleteCount: equipments.filter((e) => e.status === "A_COMPLETER").length,
-      equipments,
+      assignedCount: assignedIds.size,
+      unassigned,
+      equipments: equipments.map((e) => (assignedIds.has(e.id) ? { ...e, status: "ASSIGNED" } : e)),
     };
   },
 };

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { positionController } from "../Controllers/position.controller";
 import { validate } from "../middlewares/validate";
+import { requireRole } from "../middlewares/security";
 import { createPositionSchema, updatePositionSchema } from "../validators/position.validator";
 
 const router = Router();
@@ -37,7 +38,7 @@ const router = Router();
  *       409:
  *         description: Nom déjà utilisé dans ce département (POSITION_NAME_CONFLICT)
  */
-router.post("/", validate(createPositionSchema), positionController.create);
+router.post("/", requireRole("ADMIN"), validate(createPositionSchema), positionController.create);
 
 /**
  * @openapi
@@ -115,7 +116,7 @@ router.get("/:id", positionController.getById);
  *       409:
  *         description: Nom déjà utilisé dans ce département
  */
-router.patch("/:id", validate(updatePositionSchema), positionController.update);
+router.patch("/:id", requireRole("ADMIN"), validate(updatePositionSchema), positionController.update);
 
 /**
  * @openapi
@@ -143,6 +144,33 @@ router.patch("/:id", validate(updatePositionSchema), positionController.update);
  *       503:
  *         description: Service d'affectation indisponible (ASSIGNMENT_SERVICE_UNAVAILABLE)
  */
-router.delete("/:id", positionController.delete);
+router.delete("/:id", requireRole("ADMIN"), positionController.delete);
+
+/**
+ * @openapi
+ * /api/positions/purge:
+ *   post:
+ *     summary: Vider la liste des postes (ADMIN uniquement)
+ *     tags: [Positions]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password]
+ *             properties:
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Postes supprimés avec succès
+ *       401:
+ *         description: Mot de passe incorrect
+ *       403:
+ *         description: Réservé au rôle ADMIN
+ */
+router.post("/purge", requireRole("ADMIN"), positionController.purge);
 
 export default router;

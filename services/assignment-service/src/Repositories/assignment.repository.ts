@@ -16,6 +16,13 @@ export const assignmentRepository = {
   findAll: (filters: AssignmentFilters = {}) =>
     prisma.assignment.findMany({ where: filters, include: { transfers: true, returnInfo: true } }),
 
+  // Affectations actives sans transferts ni retour : lecture légère (export, rapprochements)
+  findActiveSummary: () =>
+    prisma.assignment.findMany({
+      where: { status: "ACTIVE" },
+      select: { equipmentId: true, assigneeType: true, assigneeId: true },
+    }),
+
   findById: (id: string) =>
     prisma.assignment.findUnique({
       where: { id },
@@ -27,4 +34,13 @@ export const assignmentRepository = {
 
   updateStatus: (id: string, status: string) =>
     prisma.assignment.update({ where: { id }, data: { status } }),
+
+  purgeAll: async () => {
+    return prisma.$transaction(async (tx) => {
+      await tx.transfer.deleteMany({});
+      await tx.return.deleteMany({});
+      const result = await tx.assignment.deleteMany({});
+      return { count: result.count };
+    });
+  },
 };

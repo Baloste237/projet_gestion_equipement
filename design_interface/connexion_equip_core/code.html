@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Enterprise SaaS Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#1c1b1b",
+                        "on-surface-variant": "#c2c6d6",
+                        "surface-container": "#20201f",
+                        "surface": "#131313",
+                        "on-tertiary": "#00363e",
+                        "on-secondary": "#2c303a",
+                        "tertiary-container": "#009fb4",
+                        "outline-variant": "#424754",
+                        "background": "#131313",
+                        "on-primary-fixed": "#001a42",
+                        "surface-variant": "#353535",
+                        "inverse-surface": "#e5e2e1",
+                        "on-background": "#e5e2e1",
+                        "tertiary": "#2fd9f4",
+                        "on-primary": "#002e6a",
+                        "inverse-on-surface": "#313030",
+                        "outline": "#8c909f",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-tertiary-fixed": "#001f25",
+                        "surface-container-high": "#2a2a2a",
+                        "on-secondary-fixed-variant": "#434751",
+                        "on-secondary-container": "#b5b8c5",
+                        "on-surface": "#e5e2e1",
+                        "secondary": "#c3c6d3",
+                        "secondary-fixed": "#dfe2ef",
+                        "surface-dim": "#131313",
+                        "tertiary-fixed": "#a2eeff",
+                        "on-tertiary-container": "#002f36",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed": "#181c25",
+                        "on-primary-container": "#00285d",
+                        "secondary-fixed-dim": "#c3c6d3",
+                        "secondary-container": "#454953",
+                        "on-error": "#690005",
+                        "primary-container": "#4d8eff",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "surface-bright": "#393939",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#adc6ff",
+                        "primary-fixed": "#d8e2ff",
+                        "primary": "#adc6ff",
+                        "surface-container-highest": "#353535",
+                        "inverse-primary": "#005ac2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "40px",
+                        "margin": "32px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "base": "8px",
+                        "gutter": "24px",
+                        "xs": "4px",
+                        "xl": "64px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-md": ["JetBrains Mono"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0d0d0d 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background-color: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 antialiased text-on-surface">
+<div class="glass-card w-full max-w-md rounded-xl border border-outline-variant p-margin shadow-2xl relative overflow-hidden">
+<!-- Background subtle glow -->
+<div class="absolute -top-32 -right-32 w-64 h-64 bg-primary rounded-full opacity-5 blur-[100px] pointer-events-none"></div>
+<div class="absolute -bottom-32 -left-32 w-64 h-64 bg-tertiary rounded-full opacity-5 blur-[100px] pointer-events-none"></div>
+<div class="relative z-10 flex flex-col items-center mb-lg">
+<div class="w-16 h-16 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-center mb-sm shadow-md">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="deployed_code" style="font-variation-settings: 'FILL' 1;">deployed_code</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg md:font-headline-lg md:text-headline-lg text-on-surface text-center tracking-tight">EQUIP-CORE</h1>
+<p class="font-body-md text-body-md text-on-surface-variant text-center mt-2">Secure Enterprise Access</p>
+</div>
+<form class="flex flex-col gap-md relative z-10">
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" for="email">Corporate Email</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-opacity-50">mail</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-sm pl-10 pr-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-outline placeholder:text-opacity-30" id="email" placeholder="admin@enterprise.local" type="email"/>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" for="password">Password</label>
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-fixed transition-colors" href="#">Recover Access</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-opacity-50">lock</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-sm pl-10 pr-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-outline placeholder:text-opacity-30" id="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<div class="flex items-center gap-2 mt-xs">
+<input class="w-4 h-4 rounded bg-surface-container-lowest border-outline-variant text-primary focus:ring-primary focus:ring-offset-background" id="remember" type="checkbox"/>
+<label class="font-body-sm text-body-sm text-on-surface-variant cursor-pointer" for="remember">Persist session</label>
+</div>
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md rounded-lg py-sm mt-sm shadow-[0_0_15px_rgba(77,142,255,0.15)] hover:shadow-[0_0_25px_rgba(77,142,255,0.25)] hover:bg-primary-fixed transition-all duration-200 active:scale-[0.98] uppercase tracking-widest flex items-center justify-center gap-2" type="submit">
+                Authenticate
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</form>
+<div class="relative z-10 mt-margin mb-md">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant"></div>
+</div>
+<div class="relative flex justify-center">
+<span class="bg-[#1a1a1a] px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Or integrate via</span>
+</div>
+</div>
+<div class="flex flex-col gap-sm relative z-10">
+<button class="w-full flex items-center justify-center gap-3 bg-surface-container-low border border-outline-variant rounded-lg py-sm font-label-md text-label-md text-on-surface hover:bg-surface-variant transition-colors active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+                Google Workspace
+            </button>
+<button class="w-full flex items-center justify-center gap-3 bg-surface-container-low border border-outline-variant rounded-lg py-sm font-label-md text-label-md text-on-surface hover:bg-surface-variant transition-colors active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">business</span>
+                Azure Active Directory
+            </button>
+</div>
+<div class="mt-margin text-center relative z-10">
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-60">System build v4.2.1 • Security Protocol Alpha</p>
+</div>
+</div>
+</body></html>

@@ -4,6 +4,11 @@ import { AppLayout } from '../../components/layout/AppLayout';
 import { type Equipment, type EquipmentStatus, equipmentService } from '../../services/api';
 import { EquipmentModal } from './EquipmentModal';
 import { getImageUrl } from '../../utils/imageUrl';
+import { conditionLabel, formatServiceDate } from '../../utils/equipmentLifecycle';
+import { QrCodeImage } from '../../components/QrCodeImage';
+import { getPublicAppUrl } from '../../config/publicUrl';
+import { equipmentQrUrl, qrFilename } from '../../utils/qrCode';
+import { downloadDataUrl } from '../../utils/download';
 
 export const EquipmentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +18,7 @@ export const EquipmentDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'history'>('overview');
 
@@ -206,12 +212,31 @@ export const EquipmentDetailPage: React.FC = () => {
                   </>
                 )}
               </div>
-              <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-on-surface-variant text-xs">
-                  <span className="material-symbols-outlined text-base">qr_code_2</span>
-                  <span>Code QR d'identification</span>
+              <div className="p-4 flex items-center gap-4">
+                <QrCodeImage
+                  value={equipmentQrUrl(equipment.id, getPublicAppUrl())}
+                  size={96}
+                  alt={`Code QR de ${equipment.name}`}
+                  onReady={setQrDataUrl}
+                />
+                <div className="flex flex-col gap-2 min-w-0">
+                  <div className="flex items-center gap-2 text-on-surface-variant text-xs">
+                    <span className="material-symbols-outlined text-base">qr_code_2</span>
+                    <span>Code QR d'identification</span>
+                  </div>
+                  <p className="text-xs text-on-surface-variant">
+                    Scanné avec un téléphone, il ouvre la fiche publique de cet équipement.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={!qrDataUrl}
+                    onClick={() => qrDataUrl && downloadDataUrl(qrDataUrl, qrFilename(equipment.serialNumber))}
+                    className="self-start inline-flex items-center gap-1.5 text-xs text-primary hover:underline disabled:opacity-50 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-base">download</span>
+                    Télécharger le QR code
+                  </button>
                 </div>
-                <span className="text-xs text-primary font-mono font-medium">Équipement vérifié</span>
               </div>
             </div>
 
@@ -238,6 +263,24 @@ export const EquipmentDetailPage: React.FC = () => {
                 <div className="flex justify-between items-center py-1 border-b border-[#262626]">
                   <span className="text-on-surface-variant">Fournisseur</span>
                   <span className="text-on-surface font-medium">{equipment.supplier?.name || 'Non renseigné'}</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-[#262626]">
+                  <span className="text-on-surface-variant">État de fonctionnement</span>
+                  <span
+                    className={`font-medium ${
+                      equipment.condition === 'NON_FONCTIONNEL' ? 'text-amber-400' : 'text-on-surface'
+                    }`}
+                  >
+                    {conditionLabel(equipment.condition)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-[#262626]">
+                  <span className="text-on-surface-variant">Mise en service</span>
+                  <span className="text-on-surface font-medium">{formatServiceDate(equipment.commissionedAt)}</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-[#262626]">
+                  <span className="text-on-surface-variant">Mise hors service</span>
+                  <span className="text-on-surface font-medium">{formatServiceDate(equipment.decommissionedAt)}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-[#262626]">
                   <span className="text-on-surface-variant">Date de création</span>

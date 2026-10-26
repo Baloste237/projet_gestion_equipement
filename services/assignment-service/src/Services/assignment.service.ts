@@ -158,6 +158,22 @@ export const assignmentService = {
     return Promise.all(assignments.map(withDetails));
   },
 
+  // Une entrée par équipement affecté : ni équipement ni assigné n'est relu, contrairement à getAll
+  listActiveSummary: () => assignmentRepository.findActiveSummary(),
+
+  // Bénéficiaire actuel d'un équipement (type et nom seulement), pour la fiche publique ; null si non affecté
+  getActiveAssignee: async (equipmentId: string) => {
+    const assignment = await assignmentRepository.findActiveByEquipment(equipmentId);
+    if (!assignment) return null;
+    const assignee = await assigneeResolver.find(assignment.assigneeType, assignment.assigneeId);
+    const assigneeName = assignee
+      ? assignment.assigneeType === "USER"
+        ? `${assignee.firstName ?? ""} ${assignee.lastName ?? ""}`.trim()
+        : assignee.name
+      : null;
+    return { assigneeType: assignment.assigneeType, assigneeName: assigneeName || null };
+  },
+
   getById: async (id: string) => {
     const assignment = await assignmentRepository.findById(id);
     if (!assignment) throw throwError("ASSIGNMENT_NOT_FOUND");
@@ -212,5 +228,9 @@ export const assignmentService = {
     await equipmentServiceClient.updateEquipmentStatus(assignment.equipmentId, newStatus);
 
     return returnRecord;
+  },
+
+  purgeAll: async () => {
+    return await assignmentRepository.purgeAll();
   },
 };

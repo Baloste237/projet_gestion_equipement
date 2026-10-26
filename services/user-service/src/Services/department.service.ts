@@ -1,5 +1,6 @@
 import { departmentRepository } from "../Repositories/departmentRepository";
 import { userRepository } from "../Repositories/user.repository";
+import { auditPublisher } from "../clients/audit-publisher.client";
 import { CreateDepartmentDTO, UpdateDepartmentDTO } from "../Types/department.type";
 
 export const departmentService = {
@@ -29,5 +30,17 @@ export const departmentService = {
     if (!department) throw new Error("DEPARTMENT_NOT_FOUND");
     await userRepository.unassignDepartment(id);
     return departmentRepository.delete(id);
+  },
+
+  purgeAll: async (performedBy: string) => {
+    const result = await departmentRepository.purgeAll();
+    void auditPublisher.publish({
+      action: "DEPARTMENT_LIST_PURGED",
+      entityType: "Department",
+      entityId: "all",
+      performedBy,
+      metadata: { deletedCount: result.count },
+    });
+    return result;
   },
 };

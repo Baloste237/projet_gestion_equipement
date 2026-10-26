@@ -42,7 +42,17 @@ export const selectionState = (equipments: SelectableEquipment[], selected: Read
   return count === selectable.length ? 'all' : 'some';
 };
 
-/** Après un rafraîchissement : ne garde que les équipements encore existants et disponibles */
+/** Retire des identifiants précis (équipement supprimé, affectation terminée) sans toucher au reste de la sélection */
+export const removeFromSelection = (selected: ReadonlySet<string>, ids: Iterable<string>): Set<string> => {
+  const next = new Set(selected);
+  for (const id of ids) next.delete(id);
+  return next;
+};
+
+/**
+ * Ne garde que les équipements encore existants et disponibles parmi la liste donnée.
+ * À n'appliquer qu'à une liste complète : sur une page, elle retirerait la sélection faite sur les autres pages.
+ */
 export const pruneSelection = (equipments: SelectableEquipment[], selected: ReadonlySet<string>): Set<string> => {
   const stillSelectable = new Set(equipments.filter(isSelectable).map((e) => e.id));
   return new Set([...selected].filter((id) => stillSelectable.has(id)));

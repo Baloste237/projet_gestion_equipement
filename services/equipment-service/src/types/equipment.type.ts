@@ -13,6 +13,9 @@ export interface CreateEquipmentDTO {
   purchasePrice?: number | null;
   warrantyEndDate?: string | Date | null;
   notes?: string | null;
+  condition?: string;
+  commissionedAt?: string | Date | null;
+  decommissionedAt?: string | Date | null;
 }
 
 export interface UpdateEquipmentDTO {
@@ -30,6 +33,9 @@ export interface UpdateEquipmentDTO {
   purchasePrice?: number | null;
   warrantyEndDate?: string | Date | null;
   notes?: string | null;
+  condition?: string;
+  commissionedAt?: string | Date | null;
+  decommissionedAt?: string | Date | null;
 }
 
 export interface TransferEquipmentDTO {
@@ -54,6 +60,9 @@ export interface EquipmentResponseDTO {
   purchasePrice?: number | null;
   warrantyEndDate?: string | Date | null;
   notes?: string | null;
+  condition?: string;
+  commissionedAt?: string | Date | null;
+  decommissionedAt?: string | Date | null;
   createdAt: Date;
 }
 

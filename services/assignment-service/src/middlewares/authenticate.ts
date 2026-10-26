@@ -14,7 +14,8 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction) =
     }
 
     const token = authHeader.split(" ")[1];
-    const secret = process.env.JWT_SECRET || "default_jwt_secret";
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return throwError("UNAUTHENTICATED");
 
     const decoded = jwt.verify(token, secret);
     (req as AuthenticatedRequest).user = decoded;

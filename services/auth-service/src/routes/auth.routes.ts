@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { authController } from "../controllers/auth.controller";
 import { validate } from "../middlewares/validate";
-import { registerSchema, loginSchema, refreshSchema } from "../validators/auth.validator";
+import { authenticate } from "../middlewares/authenticate";
+import { registerSchema, loginSchema, refreshSchema, verifyPasswordSchema } from "../validators/auth.validator";
 
 const router = Router();
 
@@ -117,5 +118,30 @@ router.post("/refresh", validate(refreshSchema), authController.refresh);
  *                 message: { type: string, example: "Déconnexion réussie" }
  */
 router.post("/logout", validate(refreshSchema), authController.logout);
+
+/**
+ * @openapi
+ * /auth/verify-password:
+ *   post:
+ *     summary: Vérifier le mot de passe de l'utilisateur authentifié
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password]
+ *             properties:
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Mot de passe vérifié avec succès
+ *       401:
+ *         description: Non authentifié ou mot de passe incorrect
+ */
+router.post("/verify-password", authenticate, validate(verifyPasswordSchema), authController.verifyPassword);
 
 export default router;

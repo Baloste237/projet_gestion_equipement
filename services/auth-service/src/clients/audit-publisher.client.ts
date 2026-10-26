@@ -42,7 +42,7 @@ export const auditPublisher = {
     try {
       await fetch(`${AUDIT_SERVICE_HTTP_URL}/audit-logs`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-internal-token": process.env.INTERNAL_SERVICE_TOKEN || "" },
         body: JSON.stringify(payload),
       });
     } catch (err: any) {

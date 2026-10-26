@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { equipmentService, type ImportPreview, type ImportResult } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
+import { saveLabelIds } from '../../utils/labelSelection';
 import { getApiErrorDetails, getApiErrorMessage } from '../../utils/apiError';
 import {
   IMPORT_FIELD_LABELS,
@@ -8,9 +10,11 @@ import {
   fieldLabel,
   findDuplicateFields,
   hasNameSource,
+  readingNotes,
   initialMapping,
   parseImportErrors,
   toMappingPayload,
+  unassignedReasonLabel,
   validateImportFile,
   type ColumnMapping,
   type ImportRowError,
@@ -32,6 +36,7 @@ const cellText = (value: string | number | boolean | null | undefined) =>
   value === null || value === undefined || value === '' ? '—' : String(value);
 
 export const ImportEquipmentsModal: React.FC<ImportEquipmentsModalProps> = ({ isOpen, onClose, onImported }) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState<Step>('file');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
@@ -246,11 +251,21 @@ export const ImportEquipmentsModal: React.FC<ImportEquipmentsModalProps> = ({ is
               <strong className="text-on-surface">{file?.name}</strong> : {preview.rowCount} ligne
               {preview.rowCount > 1 ? 's' : ''} de données. Vérifiez à quel champ correspond chaque colonne.
             </p>
+            {readingNotes(preview).length > 0 && (
+              <div className="mb-3 bg-primary/10 border border-primary/30 text-on-surface rounded-lg p-3 text-body-sm flex items-start gap-2">
+                <span className="material-symbols-outlined text-sm text-primary mt-0.5">info</span>
+                <ul className="list-none space-y-0.5">
+                  {readingNotes(preview).map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {nameMissing && (
               <div role="alert" className="mb-3 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg p-3 text-body-sm flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm">warning</span>
-                <span>Aucune colonne « Nom » (ni marque ou modèle) : les lignes seront refusées.</span>
+                <span>Aucune colonne « Nom » (ni marque, modèle ou catégorie) : les lignes seront refusées.</span>
               </div>
             )}
             {blocked && (
@@ -344,6 +359,12 @@ export const ImportEquipmentsModal: React.FC<ImportEquipmentsModalProps> = ({ is
                 ) : (
                   <p className="text-body-sm text-on-surface-variant">Tous les équipements sont complets.</p>
                 )}
+                {result.assignedCount > 0 && (
+                  <p className="text-body-sm text-emerald-400">
+                    {result.assignedCount} équipement{result.assignedCount > 1 ? 's' : ''} affecté
+                    {result.assignedCount > 1 ? 's' : ''} automatiquement.
+                  </p>
+                )}
               </div>
             ) : (
               <div>
@@ -376,11 +397,61 @@ export const ImportEquipmentsModal: React.FC<ImportEquipmentsModalProps> = ({ is
               </div>
             )}
 
+            {result && result.unassigned?.length > 0 && (
+              <div className="mt-2">
+                <div role="alert" className="bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg p-3 text-body-sm flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-sm">warning</span>
+                  <span>
+                    Ces équipements ont été créés mais n'ont pas pu être affectés. Vous pouvez les affecter depuis la
+                    liste des équipements.
+                  </span>
+                </div>
+                <div className="border border-outline-variant rounded-lg overflow-hidden">
+                  <table className="w-full text-left text-body-sm">
+                    <thead>
+                      <tr className="bg-surface-container-lowest text-on-surface-variant uppercase tracking-wider text-xs">
+                        <th className="py-2 px-3 font-medium w-20">Ligne</th>
+                        <th className="py-2 px-3 font-medium">Nom lu dans le fichier</th>
+                        <th className="py-2 px-3 font-medium w-20">Nombre</th>
+                        <th className="py-2 px-3 font-medium">Raison</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-outline-variant/30">
+                      {result.unassigned.map((entry) => (
+                        <tr key={`${entry.row}-${entry.reason}`}>
+                          <td className="py-1.5 px-3 font-mono text-on-surface-variant">{entry.row}</td>
+                          <td className="py-1.5 px-3 text-on-surface">{entry.assigneeName}</td>
+                          <td className="py-1.5 px-3 text-on-surface-variant">{entry.count}</td>
+                          <td className="py-1.5 px-3 text-on-surface">{unassignedReasonLabel(entry.reason)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end gap-3 mt-5 pt-4 border-t border-outline-variant">
               {result ? (
-                <Button type="button" onClick={onClose}>
-                  Terminer
-                </Button>
+                <>
+                  {result.equipments?.length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const equipmentIds = result.equipments.map((e) => e.id);
+                        saveLabelIds(sessionStorage, equipmentIds);
+                        onClose();
+                        navigate('/equipments/labels', { state: { equipmentIds } });
+                      }}
+                    >
+                      Imprimer les étiquettes
+                    </Button>
+                  )}
+                  <Button type="button" onClick={onClose}>
+                    Terminer
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button type="button" variant="outline" onClick={onClose}>

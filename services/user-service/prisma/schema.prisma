@@ -11,7 +11,7 @@ model User {
   firstName     String
   lastName      String
   email         String      @unique
-  authUserId    String      @unique
+  authUserId    String?     @unique
   role          String      @default("EMPLOYE")
   avatarUrl     String?
   phone         String?

@@ -3,6 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { test, describe, before } from "node:test";
 import ExcelJS from "exceljs";
+import jwt from "jsonwebtoken";
+
+process.env.JWT_SECRET = "test-secret";
+process.env.INTERNAL_SERVICE_TOKEN = "test-internal";
+// Routes privées : jeton signé exigé par le service lui-même
+const authHeader = { Authorization: `Bearer ${jwt.sign({ id: "user-1", role: "EMPLOYE", permissions: [] }, "test-secret", { expiresIn: "5m" })}` };
+
 import { readSpreadsheet } from "../src/services/import-export/spreadsheet.reader";
 import { buildEquipmentDrafts, resolveColumnMapping } from "../src/services/import-export/equipment-row.mapper";
 
@@ -145,20 +152,99 @@ describe("Aperçu de l'import (sans création)", () => {
 
       const form = new FormData();
       form.append("file", new Blob([fixture("import-sample.csv")], { type: "text/csv" }), "import-sample.csv");
-      const ok = await fetch(url, { method: "POST", body: form });
+      const ok = await fetch(url, { method: "POST", headers: authHeader, body: form });
       const body = (await ok.json()) as any;
       assert.strictEqual(ok.status, 200);
       assert.strictEqual(body.data.rowCount, 3);
 
-      const missing = await fetch(url, { method: "POST", body: new FormData() });
+      const missing = await fetch(url, { method: "POST", headers: authHeader, body: new FormData() });
       assert.strictEqual(missing.status, 400);
 
       const wrongType = new FormData();
       wrongType.append("file", new Blob(["x"], { type: "text/plain" }), "notes.txt");
-      assert.notStrictEqual((await fetch(url, { method: "POST", body: wrongType })).status, 200);
+      assert.notStrictEqual((await fetch(url, { method: "POST", headers: authHeader, body: wrongType })).status, 200);
       assert.strictEqual(writes, 0);
     } finally {
       server.close();
     }
+  });
+});
+
+describe("État, dates de service et bénéficiaire", () => {
+  const load = async () => {
+    const { headers, rows } = await readSpreadsheet(fixture("import-lifecycle.csv"), "import-lifecycle.csv");
+    return { headers, rows, mapping: resolveColumnMapping(headers) };
+  };
+
+  test("reconnaît les en-têtes ETAT, dates de service et « mis à la disposition de » (faute comprise)", async () => {
+    const { mapping } = await load();
+    assert.strictEqual(mapping.condition, "ETAT");
+    assert.strictEqual(mapping.commissionedAt, "DATE DE MISE EN SERVICE");
+    assert.strictEqual(mapping.decommissionedAt, "DATE DE MISE HORS SERVICE");
+    assert.strictEqual(mapping.assigneeName, "MIS A LA DIPOSITION DE");
+    assert.strictEqual(resolveColumnMapping(["Mis à la disposition de"]).assigneeName, "Mis à la disposition de");
+  });
+
+  test("convertit l'état et lit les dates avec les règles de la date d'achat", async () => {
+    const { rows, mapping } = await load();
+    const { drafts, errors } = buildEquipmentDrafts(rows, mapping);
+    assert.deepStrictEqual(errors, []);
+    const [laptop, screen, , , keyboard] = drafts;
+    assert.strictEqual(laptop.condition, "FONCTIONNEL");
+    assert.strictEqual(laptop.commissionedAt?.toISOString().slice(0, 10), "2024-03-15");
+    assert.strictEqual(laptop.decommissionedAt, null);
+    assert.strictEqual(screen.condition, "NON_FONCTIONNEL");
+    assert.strictEqual(screen.decommissionedAt?.toISOString().slice(0, 10), "2025-06-30");
+    // Cellule vide : état par défaut
+    assert.strictEqual(keyboard.condition, "FONCTIONNEL");
+    assert.strictEqual(keyboard.assigneeName, null);
+  });
+
+  test("accepte les variantes de casse, d'accent et de tiret", () => {
+    const rows = ["non-fonctionnel", "NON FONCTIONNEL", "Nonfonctionnel", "fonctionnel", "FONCTIONNEL "].map((etat, i) => ({
+      rowNumber: i + 2,
+      values: { Nom: "A", ETAT: etat },
+    }));
+    const { drafts, errors } = buildEquipmentDrafts(rows, { name: "Nom", condition: "ETAT" });
+    assert.deepStrictEqual(errors, []);
+    assert.deepStrictEqual(drafts.map((d) => d.condition), [
+      "NON_FONCTIONNEL",
+      "NON_FONCTIONNEL",
+      "NON_FONCTIONNEL",
+      "FONCTIONNEL",
+      "FONCTIONNEL",
+    ]);
+  });
+
+  test("refuse un état inconnu avec le numéro de ligne", () => {
+    const rows = [
+      { rowNumber: 2, values: { Nom: "A", ETAT: "FONCTIONNEL" } },
+      { rowNumber: 3, values: { Nom: "B", ETAT: "cassé" } },
+    ];
+    const { errors } = buildEquipmentDrafts(rows, { name: "Nom", condition: "ETAT" });
+    assert.strictEqual(errors.length, 1);
+    assert.strictEqual(errors[0].row, 3);
+    assert.match(errors[0].message, /FONCTIONNEL ou NON-FONCTIONNEL/);
+  });
+
+  test("refuse une mise hors service antérieure à la mise en service, ou une date invalide", () => {
+    const mapping = { name: "Nom", commissionedAt: "MES", decommissionedAt: "MHS" } as const;
+    const rows = [
+      { rowNumber: 2, values: { Nom: "A", MES: "2025-06-30", MHS: "2024-01-10" } },
+      { rowNumber: 3, values: { Nom: "B", MES: "pas une date" } },
+      { rowNumber: 4, values: { Nom: "C", MES: "2024-01-10", MHS: "2024-01-10" } },
+    ];
+    const { errors } = buildEquipmentDrafts(rows, mapping);
+    assert.deepStrictEqual(errors.map((e) => e.row), [2, 3]);
+  });
+
+  test("une ligne de quantité N produit N brouillons portant la même ligne et le même nom lu", async () => {
+    const { rows, mapping } = await load();
+    const { drafts } = buildEquipmentDrafts(rows, mapping);
+    const screens = drafts.filter((d) => d.name === "Écran 24 pouces");
+    assert.strictEqual(screens.length, 3);
+    assert.ok(screens.every((d) => d.sourceRow === 3 && d.assigneeName === "Mofor Chi George"));
+    assert.strictEqual(drafts[0].sourceRow, 2);
+    assert.strictEqual(drafts[0].assigneeName, "CHI GEORGE MOFOR");
   });
 });

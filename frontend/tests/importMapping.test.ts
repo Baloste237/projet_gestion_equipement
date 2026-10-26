@@ -6,6 +6,7 @@ import {
   findDuplicateFields,
   hasNameSource,
   initialMapping,
+  readingNotes,
   parseImportErrors,
   toMappingPayload,
   validateImportFile,
@@ -44,11 +45,27 @@ describe('mapping des colonnes', () => {
     assert.deepStrictEqual(findDuplicateFields({ Nom: 'name', Site: '' }), {});
   });
 
+  test('findDuplicateFields accepte plusieurs colonnes de notes mais pas deux colonnes de nom', () => {
+    assert.deepStrictEqual(findDuplicateFields({ CARACTERISTIQUES: 'notes', 'OBSERVATIONS / HISTORIQUE': 'notes' }), {});
+    assert.deepStrictEqual(findDuplicateFields({ A: 'name', B: 'name' }), { B: 'A' });
+  });
+
   test('hasNameSource : nom, ou marque/modèle qui servent à le déduire', () => {
     assert.strictEqual(hasNameSource({ Nom: 'name' }), true);
     assert.strictEqual(hasNameSource({ Marque: 'brand' }), true);
     assert.strictEqual(hasNameSource({ Modèle: 'model' }), true);
+    assert.strictEqual(hasNameSource({ CATEGORIE: 'category' }), true);
     assert.strictEqual(hasNameSource({ Site: 'location', Autre: '' }), false);
+  });
+
+  test('readingNotes décrit l’en-tête détecté et les lignes ignorées, et se tait pour un fichier simple', () => {
+    assert.deepStrictEqual(readingNotes({ headerRow: 1, ignoredRowCount: 0 }), []);
+    assert.deepStrictEqual(readingNotes({}), []);
+    const notes = readingNotes({ headerRow: 5, ignoredRowCount: 912 });
+    assert.match(notes[0], /en ligne 5/);
+    assert.match(notes[1], /912 lignes vides ignorées/);
+    assert.match(notes[2], /LISTE DES VALEURS/);
+    assert.match(readingNotes({ headerRow: 1, ignoredRowCount: 1 })[0], /^1 ligne vide ignorée./);
   });
 
   test('toMappingPayload n’envoie que les colonnes associées', () => {

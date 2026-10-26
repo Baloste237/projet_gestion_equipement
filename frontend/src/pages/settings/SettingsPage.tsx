@@ -38,6 +38,8 @@ export const SettingsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Identifiant de la fiche reliée au compte connecté (différent de l'identifiant du compte)
+  const [profileId, setProfileId] = useState<string | null>(null);
 
   useEffect(() => {
     departmentService.getAll()
@@ -49,17 +51,19 @@ export const SettingsPage: React.FC = () => {
       .catch((err) => console.error('Erreur chargement départements:', err));
 
     if (initialUser?.id) {
-      userService.getById(initialUser.id)
+      userService.getMe()
         .then((res) => {
           const u = res.data?.data;
           if (u) {
+            setProfileId(u.id);
             setFirstName(u.firstName || '');
             setLastName(u.lastName || '');
             setPhone(u.phone || '');
             setCountryCode(u.countryCode || 'CM');
             setAvatarUrl(u.avatarUrl || '');
             setDepartmentId(u.departmentId || '');
-            localStorage.setItem('user', JSON.stringify({ ...initialUser, ...u }));
+            // `id` reste celui du compte (jeton) : la fiche a son propre identifiant
+            localStorage.setItem('user', JSON.stringify({ ...initialUser, ...u, id: initialUser.id }));
           }
         })
         .catch(() => {});
@@ -90,8 +94,12 @@ export const SettingsPage: React.FC = () => {
     setLoading(true);
 
     try {
+      if (!profileId) {
+        setErrorMsg("Aucune fiche n'est reliée à votre compte : demandez à un administrateur de la créer.");
+        return;
+      }
       if (initialUser?.id) {
-        await userService.updateProfile(initialUser.id, {
+        await userService.updateProfile(profileId, {
           firstName,
           lastName,
           phone,

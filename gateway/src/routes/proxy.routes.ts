@@ -2,7 +2,7 @@ import { Router } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { SERVICES_CONFIG } from "../config/services.config";
 import { authenticate } from "../middlewares/authenticate";
-import { authRateLimiter } from "../middlewares/rate-limiter";
+import { authRateLimiter, publicRateLimiter } from "../middlewares/rate-limiter";
 
 const router = Router();
 
@@ -12,6 +12,11 @@ SERVICES_CONFIG.forEach(({ path, target, requiresAuth, rewritePath }) => {
   // Rate limit spécifique pour les routes d'authentification sensibles
   if (path === "/auth") {
     middlewares.push(authRateLimiter);
+  }
+
+  // Route publique : pas de jeton, donc une limite de débit propre
+  if (path === "/public") {
+    middlewares.push(publicRateLimiter);
   }
 
   if (requiresAuth) {

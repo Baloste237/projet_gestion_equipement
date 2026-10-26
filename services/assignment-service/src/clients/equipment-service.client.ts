@@ -6,6 +6,12 @@ const equipmentServiceApi = axios.create({
   timeout: 5000,
 });
 
+// equipment-service exige un jeton : les appels de service à service portent le secret interne
+equipmentServiceApi.interceptors.request.use((config) => {
+  config.headers["x-internal-token"] = process.env.INTERNAL_SERVICE_TOKEN ?? "";
+  return config;
+});
+
 // Les appels groupés portent sur jusqu'à 200 équipements (audit et événements publiés pour chacun)
 const BATCH_TIMEOUT_MS = 20_000;
 const BATCH_ATTEMPTS = 2;

@@ -2,7 +2,10 @@ import { equipmentRepository } from "../repositories/equipment.repository";
 import { CreateEquipmentDTO, UpdateEquipmentDTO, TransferEquipmentDTO } from "../types/equipment.type";
 import { auditPublisher } from "../clients/audit-publisher.client";
 import { eventPublisher, toEquipmentSnapshot } from "../clients/event-publisher.client";
+import { assignmentServiceClient } from "../clients/assignment-service.client";
 import { HttpError } from "../errors/http-error";
+import { buildMeta } from "../utils/pagination";
+import { EquipmentListQuery, parseEquipmentListQuery } from "../validators/equipment-list.validator";
 
 export const equipmentService = {
   create: async (data: CreateEquipmentDTO, performedBy: string = "system") => {
@@ -21,7 +24,12 @@ export const equipmentService = {
     });
     return equipment;
   },
-  getAll: () => equipmentRepository.findAll(),
+  // Sans pagination : liste complète (même ordre stable) ; avec : une page et son `meta`
+  getAll: async (query: EquipmentListQuery = parseEquipmentListQuery({})) => {
+    if (!query.pagination) return { data: await equipmentRepository.findAll(query) };
+    const { rows, total } = await equipmentRepository.findPage(query);
+    return { data: rows, meta: buildMeta(total, query.pagination) };
+  },
   getById: async (id: string) => {
     const equipment = await equipmentRepository.findById(id);
     if (!equipment) throw new Error("EQUIPMENT_NOT_FOUND");
@@ -38,7 +46,9 @@ export const equipmentService = {
       performedBy,
       metadata: { modifiedFields: Object.keys(data) },
     });
-    if (previous && (previous.status !== equipment.status || previous.categoryId !== equipment.categoryId)) {
+    if (previous && (previous.status !== equipment.status ||
+        previous.categoryId !== equipment.categoryId ||
+        previous.condition !== equipment.condition)) {
       eventPublisher.publish("equipment.updated", {
         equipmentId: equipment.id,
         before: toEquipmentSnapshot(previous),
@@ -110,5 +120,19 @@ export const equipmentService = {
       });
     }
     return equipment;
+  },
+
+  purgeAll: async (performedBy: string = "system") => {
+    await assignmentServiceClient.purgeAll();
+    const result = await equipmentRepository.purgeAll();
+    auditPublisher.publish({
+      action: "EQUIPMENT_LIST_PURGED",
+      routingKey: "equipment.purged",
+      entityType: "Equipment",
+      entityId: "all",
+      performedBy,
+      metadata: { deletedCount: result.count },
+    });
+    return result;
   },
 };

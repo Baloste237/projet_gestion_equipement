@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Equipment List - EQUIP-CORE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#1c1b1b",
+                        "on-surface-variant": "#c2c6d6",
+                        "surface-container": "#20201f",
+                        "surface": "#131313",
+                        "on-tertiary": "#00363e",
+                        "on-secondary": "#2c303a",
+                        "tertiary-container": "#009fb4",
+                        "outline-variant": "#424754",
+                        "background": "#131313",
+                        "on-primary-fixed": "#001a42",
+                        "surface-variant": "#353535",
+                        "inverse-surface": "#e5e2e1",
+                        "on-background": "#e5e2e1",
+                        "tertiary": "#2fd9f4",
+                        "on-primary": "#002e6a",
+                        "inverse-on-surface": "#313030",
+                        "outline": "#8c909f",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-tertiary-fixed": "#001f25",
+                        "surface-container-high": "#2a2a2a",
+                        "on-secondary-fixed-variant": "#434751",
+                        "on-secondary-container": "#b5b8c5",
+                        "on-surface": "#e5e2e1",
+                        "secondary": "#c3c6d3",
+                        "secondary-fixed": "#dfe2ef",
+                        "surface-dim": "#131313",
+                        "tertiary-fixed": "#a2eeff",
+                        "on-tertiary-container": "#002f36",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed": "#181c25",
+                        "on-primary-container": "#00285d",
+                        "secondary-fixed-dim": "#c3c6d3",
+                        "secondary-container": "#454953",
+                        "on-error": "#690005",
+                        "primary-container": "#4d8eff",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "surface-bright": "#393939",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#adc6ff",
+                        "primary-fixed": "#d8e2ff",
+                        "primary": "#adc6ff",
+                        "surface-container-highest": "#353535",
+                        "inverse-primary": "#005ac2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "40px",
+                        "margin": "32px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "base": "8px",
+                        "gutter": "24px",
+                        "xs": "4px",
+                        "xl": "64px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-md": ["JetBrains Mono"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #131313;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #353535;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #424754;
+        }
+
+        /* Table specific styles */
+        .zebra-row:nth-child(even) {
+            background-color: #1a1a1a;
+        }
+        .zebra-row:nth-child(odd) {
+            background-color: #151515;
+        }
+        
+        input[type="checkbox"] {
+            appearance: none;
+            background-color: #131313;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.15em;
+            height: 1.15em;
+            border: 1px solid #424754;
+            border-radius: 0.15em;
+            display: grid;
+            place-content: center;
+        }
+        input[type="checkbox"]::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em #adc6ff;
+            background-color: #adc6ff;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        input[type="checkbox"]:checked::before {
+            transform: scale(1);
+        }
+        input[type="checkbox"]:checked {
+            border-color: #adc6ff;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased overflow-hidden flex h-screen w-screen">
+<!-- SideNavBar (Desktop) -->
+<nav class="docked left-0 h-screen w-64 hidden md:flex flex-col bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant dark:border-outline-variant flat no shadows flex flex-col p-md gap-base flex-shrink-0">
+<div class="flex items-center gap-base mb-lg">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container font-headline-sm" data-icon="domain">domain</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-primary leading-tight">System Admin</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Global Operations</p>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-xs overflow-y-auto pr-2">
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Users</span>
+</a>
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="lan">lan</span>
+<span class="font-label-md text-label-md">Departments</span>
+</a>
+<!-- ACTIVE TAB -->
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg fill" data-icon="construction">construction</span>
+<span class="font-label-md text-label-md">Equipment</span>
+</a>
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="assignment_ind">assignment_ind</span>
+<span class="font-label-md text-label-md">Assignments</span>
+</a>
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Inventory</span>
+</a>
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="build">build</span>
+<span class="font-label-md text-label-md">Maintenance</span>
+</a>
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="fact_check">fact_check</span>
+<span class="font-label-md text-label-md">Audit</span>
+</a>
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</div>
+<div class="pt-md border-t border-outline-variant flex flex-col gap-xs mt-auto">
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="contact_support">contact_support</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-sm px-3 py-2 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-screen overflow-hidden bg-background">
+<!-- TopNavBar -->
+<header class="docked full-width top-0 sticky z-50 bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant flat no shadows flex justify-between items-center w-full px-margin h-16 flex-shrink-0">
+<div class="flex items-center gap-md w-1/3">
+<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface dark:text-on-surface tracking-tight hidden md:block">EQUIP-CORE</h2>
+<!-- Mobile Menu Button -->
+<button class="md:hidden text-on-surface hover:bg-surface-container-high p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+<!-- Search Bar (on_left in JSON, but moving to center/left for layout balance) -->
+<div class="flex-1 max-w-md mx-md hidden md:flex items-center">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg" data-icon="search">search</span>
+<input class="w-full bg-surface-container-highest border border-outline-variant rounded-lg py-2 pl-10 pr-4 text-body-sm font-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-outline" placeholder="Search equipment by ID, Name, or Location..." type="text"/>
+</div>
+</div>
+<div class="flex items-center justify-end gap-sm w-1/3">
+<button class="hidden md:flex items-center gap-xs px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface bg-[#1A1A1A] hover:bg-surface-container-high transition-colors font-label-sm text-label-sm active:scale-95 duration-100">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span>
+                    Quick Export
+                </button>
+<button class="hidden md:flex items-center gap-xs px-3 py-1.5 rounded-lg bg-[#3B82F6] text-white hover:bg-primary-container hover:text-on-primary-container transition-colors font-label-sm text-label-sm active:scale-95 duration-100 font-bold">
+<span class="material-symbols-outlined text-[16px]" data-icon="add">add</span>
+                    Create Asset
+                </button>
+<div class="w-px h-6 bg-outline-variant mx-xs hidden md:block"></div>
+<button class="p-2 rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors active:scale-95 duration-100 hidden sm:block">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-variant border border-outline-variant ml-xs overflow-hidden cursor-pointer hover:ring-2 ring-primary transition-all">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A macro photography shot of a high-tech server circuit board. Glowing blue LED lights highlight tiny transistors and metallic pathways on a matte black PCB. The lighting is dramatic and cinematic, emphasizing the precision engineering. The mood is highly technical and secure, fitting an enterprise dashboard avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHj9RSJ-mCeYkjzpDzNx5EpNLA2EYRGXyhLFnOfMTOMyOXnZ58etjqlc5o5rM_7CL9PVaWkc4r0pYUOVwuwFTm4M6V1emAMUaOmuegFZIUquUkFUofsF_yaQiJEYYXSi5CNYh7p61MojZ99xmlg6lVrB2NEkFstGHUII2sxqW5ks_p3BOIHkV4_A9nwp35YlNsWdCRpNWea9G9wTQKavNREDFritzA0eF3l08_GhW-luoUBPgH0Ed7"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto p-4 md:p-margin flex flex-col gap-md relative">
+<!-- Page Header & Advanced Filters Bento -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-md shrink-0">
+<!-- Header Info -->
+<div class="lg:col-span-4 bg-[#1A1A1A] rounded-xl border border-[#262626] p-md flex flex-col justify-between">
+<div>
+<h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-on-surface">Equipment Directory</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2">Manage and track all organizational assets. Currently displaying 1,204 active records.</p>
+</div>
+<div class="flex items-center gap-sm mt-6">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full bg-surface-variant border-2 border-[#1A1A1A] flex items-center justify-center font-label-sm text-[10px] text-on-surface">JD</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant border-2 border-[#1A1A1A] flex items-center justify-center font-label-sm text-[10px] text-on-surface">MK</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant border-2 border-[#1A1A1A] flex items-center justify-center font-label-sm text-[10px] text-on-surface">+12</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Active Custodians</span>
+</div>
+</div>
+<!-- Advanced Filters -->
+<div class="lg:col-span-8 bg-[#1A1A1A] rounded-xl border border-[#262626] p-md flex flex-col">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="filter_list">filter_list</span>
+                            Filter Parameters
+                        </h3>
+<button class="font-label-sm text-label-sm text-primary hover:text-primary-container transition-colors">Clear All</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-sm flex-1">
+<!-- Filter: Brand -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider">Brand / Manufacturer</label>
+<div class="relative w-full h-full">
+<select class="w-full h-full min-h-[40px] bg-[#0D0D0D] border border-[#333333] rounded-lg py-2 px-3 text-body-sm font-body-sm text-on-surface appearance-none focus:outline-none focus:border-[#3B82F6] transition-colors cursor-pointer">
+<option>All Brands</option>
+<option>Cisco Systems</option>
+<option>Dell EMC</option>
+<option>Fluke Networks</option>
+<option>Lenovo</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
+</div>
+</div>
+<!-- Filter: Date Acquired -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider">Acquisition Date</label>
+<div class="relative w-full h-full">
+<input class="w-full h-full min-h-[40px] bg-[#0D0D0D] border border-[#333333] rounded-lg py-2 px-3 text-body-sm font-body-sm text-on-surface focus:outline-none focus:border-[#3B82F6] transition-colors [&amp;::-webkit-calendar-picker-indicator]:invert-[0.8]" type="date"/>
+</div>
+</div>
+<!-- Filter: Cost Center -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider">Cost Center</label>
+<div class="relative w-full h-full">
+<select class="w-full h-full min-h-[40px] bg-[#0D0D0D] border border-[#333333] rounded-lg py-2 px-3 text-body-sm font-body-sm text-on-surface appearance-none focus:outline-none focus:border-[#3B82F6] transition-colors cursor-pointer">
+<option>Select Cost Center</option>
+<option>CC-1042 (IT Ops)</option>
+<option>CC-2099 (R&amp;D)</option>
+<option>CC-3100 (Field Services)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Table Action Bar -->
+<div class="flex flex-wrap items-center justify-between gap-sm mt-2 shrink-0">
+<div class="flex items-center gap-2">
+<div class="bg-[#1A1A1A] border border-[#262626] rounded-lg px-3 py-1.5 flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">2 Selected</span>
+<div class="w-px h-4 bg-outline-variant"></div>
+<button class="font-label-sm text-label-sm text-primary hover:text-primary-container transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="assignment_add">assignment_add</span>
+                            Assign Selected
+                        </button>
+<div class="w-px h-4 bg-outline-variant"></div>
+<button class="font-label-sm text-label-sm text-on-surface hover:text-white transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="file_download">file_download</span>
+                            Export CSV
+                        </button>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant mr-2">Sort by:</span>
+<select class="bg-transparent border-none text-body-sm font-body-sm text-on-surface focus:ring-0 cursor-pointer p-0 pr-6 appearance-none">
+<option>Status (Critical First)</option>
+<option>Serial ID (A-Z)</option>
+<option>Date Acquired (Newest)</option>
+</select>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="flex-1 bg-[#1A1A1A] rounded-xl border border-[#262626] overflow-hidden flex flex-col min-h-[400px]">
+<div class="overflow-x-auto flex-1">
+<table class="w-full text-left border-collapse whitespace-nowrap">
+<thead class="bg-[#0D0D0D] sticky top-0 z-10 border-b border-[#333333]">
+<tr>
+<th class="p-sm pl-md w-12">
+<input aria-label="Select all rows" type="checkbox"/>
+</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-16">Image</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Serial ID</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Name &amp; Model</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Category</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Current User</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="p-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Location</th>
+<th class="p-sm pr-md w-12"></th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm text-on-surface">
+<!-- Row 1: Operational -->
+<tr class="zebra-row border-b border-[#262626] hover:bg-[#202020] transition-colors group cursor-pointer">
+<td class="p-sm pl-md">
+<input aria-label="Select row" checked="" type="checkbox"/>
+</td>
+<td class="p-sm">
+<div class="w-10 h-10 rounded bg-[#0D0D0D] border border-[#333333] overflow-hidden">
+<img alt="Network Switch" class="w-full h-full object-cover" data-alt="A sleek, modern rack-mounted network switch on a dark workbench. The device is black with brushed steel accents and features numerous ethernet ports with subtle green indicator LEDs. The lighting is studio-style, focused on the hardware's premium build quality against a dark, corporate-modern background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCm8ISuobVRhDA00X71ALGNQlHRyf9fcK9rOg5YiEGCBYG_h1FBVVQo4kOMQ1xChS7un4eJuWHjtrsomNrzkymRwReJ9OZhWPMzcfDYOp_tD0iytO36Ml1trh5RfDpnj5IUtcqH4_FdyJ6ZZ6JtsbskZUBXSFudcCcXrUow0cClVo0aVlpEA0tbsoAeS3gGb4aKOf4G5zh5uxjWvW3TAqmpw5pd3rpj_ji7q6jdU7q_54PBFqntnv7a"/>
+</div>
+</td>
+<td class="p-sm font-label-md text-label-md">SW-992-TX</td>
+<td class="p-sm">
+<div class="font-semibold">Catalyst 9300 Series</div>
+<div class="text-on-surface-variant text-[12px]">Cisco Systems</div>
+</td>
+<td class="p-sm">Networking</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center text-[10px] font-label-sm">MK</div>
+<span>Maria K.</span>
+</div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded border border-[#22c55e] text-[#22c55e] font-label-sm text-[11px] uppercase tracking-wider bg-transparent">
+                                        Operational
+                                    </span>
+</td>
+<td class="p-sm">Data Center A, Rack 04</td>
+<td class="p-sm pr-md text-right">
+<button class="text-on-surface-variant hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2: In Repair -->
+<tr class="zebra-row border-b border-[#262626] hover:bg-[#202020] transition-colors group cursor-pointer">
+<td class="p-sm pl-md">
+<input aria-label="Select row" type="checkbox"/>
+</td>
+<td class="p-sm">
+<div class="w-10 h-10 rounded bg-[#0D0D0D] border border-[#333333] overflow-hidden">
+<img alt="Rugged Laptop" class="w-full h-full object-cover" data-alt="A heavy-duty ruggedized laptop used for field diagnostics. The device is thick, black with yellow rubberized bumpers, sitting open on a metallic surface. The screen displays a complex schematic diagram in electric blue. The setting implies a serious, industrial repair environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFmqeTgIw2PAuMkLZs742L3uRnG3AOE09wVjMTOcd4rdIUfShI4j-qoLny8VFWY0eyL9LS1KKz4Zca3wXZs3-A-KOHvTKOjj5SLUTDkTho9oWXQddX5YhzcyWz080tSZwLofGTat-veb5VLHgzTXuqAJsBtEbJceEfEFDofw5QxZjlmcoXRk748OfkvNJTB2Khx3FtFu6OQUlVbPJwETdR7ylXXdAbCZiNNPdl-ri0rDDHHLhZVqcs"/>
+</div>
+</td>
+<td class="p-sm font-label-md text-label-md">LT-RUG-441</td>
+<td class="p-sm">
+<div class="font-semibold">Latitude 7424 Rugged</div>
+<div class="text-on-surface-variant text-[12px]">Dell EMC</div>
+</td>
+<td class="p-sm">Workstation</td>
+<td class="p-sm text-on-surface-variant italic">Unassigned (Depot)</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded border border-[#f59e0b] text-[#f59e0b] font-label-sm text-[11px] uppercase tracking-wider bg-transparent">
+                                        In Repair
+                                    </span>
+</td>
+<td class="p-sm">Maintenance Depot, Bench 3</td>
+<td class="p-sm pr-md text-right">
+<button class="text-on-surface-variant hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3: Operational -->
+<tr class="zebra-row border-b border-[#262626] hover:bg-[#202020] transition-colors group cursor-pointer">
+<td class="p-sm pl-md">
+<input aria-label="Select row" checked="" type="checkbox"/>
+</td>
+<td class="p-sm">
+<div class="w-10 h-10 rounded bg-[#0D0D0D] border border-[#333333] overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+</td>
+<td class="p-sm font-label-md text-label-md">SENS-ENV-09</td>
+<td class="p-sm">
+<div class="font-semibold">Enviro-Monitor Pro X</div>
+<div class="text-on-surface-variant text-[12px]">Fluke Networks</div>
+</td>
+<td class="p-sm">IoT Sensor</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center text-[10px] font-label-sm">JD</div>
+<span>John D.</span>
+</div>
+</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded border border-[#22c55e] text-[#22c55e] font-label-sm text-[11px] uppercase tracking-wider bg-transparent">
+                                        Operational
+                                    </span>
+</td>
+<td class="p-sm">Zone 14, Ceiling Grid</td>
+<td class="p-sm pr-md text-right">
+<button class="text-on-surface-variant hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4: Retired -->
+<tr class="zebra-row border-b border-[#262626] hover:bg-[#202020] transition-colors group cursor-pointer opacity-75">
+<td class="p-sm pl-md">
+<input aria-label="Select row" type="checkbox"/>
+</td>
+<td class="p-sm">
+<div class="w-10 h-10 rounded bg-[#0D0D0D] border border-[#333333] overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant" data-icon="router">router</span>
+</div>
+</td>
+<td class="p-sm font-label-md text-label-md line-through text-on-surface-variant">RT-OLD-01</td>
+<td class="p-sm text-on-surface-variant">
+<div class="font-semibold">Legacy Core Router V1</div>
+<div class="text-[12px]">Cisco Systems</div>
+</td>
+<td class="p-sm text-on-surface-variant">Networking</td>
+<td class="p-sm text-on-surface-variant italic">N/A</td>
+<td class="p-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded border border-[#64748b] text-[#94a3b8] font-label-sm text-[11px] uppercase tracking-wider bg-transparent">
+                                        Retired
+                                    </span>
+</td>
+<td class="p-sm text-on-surface-variant">Storage Facility B</td>
+<td class="p-sm pr-md text-right">
+<button class="text-on-surface-variant hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="bg-[#1A1A1A] border-t border-[#333333] p-sm flex items-center justify-between mt-auto">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Showing 1-4 of 1,204</span>
+<div class="flex items-center gap-2">
+<button class="p-1 rounded bg-[#0D0D0D] border border-[#333333] text-on-surface-variant hover:text-on-surface hover:border-outline-variant disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[18px]" data-icon="chevron_left">chevron_left</span>
+</button>
+<div class="flex gap-1">
+<button class="w-8 h-8 rounded bg-primary-container text-on-primary-container font-label-sm text-label-sm flex items-center justify-center">1</button>
+<button class="w-8 h-8 rounded bg-transparent hover:bg-surface-variant text-on-surface font-label-sm text-label-sm flex items-center justify-center">2</button>
+<button class="w-8 h-8 rounded bg-transparent hover:bg-surface-variant text-on-surface font-label-sm text-label-sm flex items-center justify-center">3</button>
+<span class="w-8 h-8 flex items-center justify-center text-on-surface-variant">...</span>
+</div>
+<button class="p-1 rounded bg-[#0D0D0D] border border-[#333333] text-on-surface-variant hover:text-on-surface hover:border-outline-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- BottomNavBar (Mobile) -->
+<nav class="docked full-width bottom-0 md:hidden z-50 bg-surface-container-high dark:bg-surface-container-high border-t border-outline-variant shadow-lg fixed bottom-0 w-full flex justify-around py-sm flex-shrink-0">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant dark:text-on-surface-variant scale-90 duration-75 active:bg-surface-variant p-2 rounded-lg">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-[10px]">Home</span>
+</button>
+<!-- ACTIVE TAB MOBILE -->
+<button class="flex flex-col items-center gap-1 text-primary dark:text-primary scale-90 duration-75 active:bg-surface-variant p-2 rounded-lg">
+<span class="material-symbols-outlined fill" data-icon="construction">construction</span>
+<span class="font-label-sm text-[10px]">Assets</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant dark:text-on-surface-variant scale-90 duration-75 active:bg-surface-variant p-2 rounded-lg">
+<span class="material-symbols-outlined" data-icon="build">build</span>
+<span class="font-label-sm text-[10px]">Fix</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant dark:text-on-surface-variant scale-90 duration-75 active:bg-surface-variant p-2 rounded-lg">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-sm text-[10px]">Logs</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant dark:text-on-surface-variant scale-90 duration-75 active:bg-surface-variant p-2 rounded-lg">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+<span class="font-label-sm text-[10px]">More</span>
+</button>
+</nav>
+</body></html>

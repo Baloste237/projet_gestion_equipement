@@ -4,6 +4,8 @@ import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger";
 import authRoutes from "./routes/auth.routes";
+import credentialAdminRoutes from "./routes/credential-admin.routes";
+import { internalOnly } from "./middlewares/internal-only";
 import { errorHandler } from "./middlewares/error-handler";
 
 const app = express();
@@ -19,6 +21,9 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get("/api-docs.json", (_req, res) => res.json(swaggerSpec));
 
 app.use("/auth", authRoutes);
+
+// Lecture et modification des comptes par les autres services : secret interne exigé, jamais routé par le gateway
+app.use("/internal/credentials", internalOnly, credentialAdminRoutes);
 
 app.use(errorHandler);
 

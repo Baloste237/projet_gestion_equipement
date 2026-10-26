@@ -2,6 +2,13 @@ import assert from "node:assert";
 import http from "node:http";
 import { AddressInfo } from "node:net";
 import { test, describe, before, beforeEach } from "node:test";
+import jwt from "jsonwebtoken";
+
+process.env.JWT_SECRET = "test-secret";
+process.env.INTERNAL_SERVICE_TOKEN = "test-internal";
+// Routes privées : jeton signé exigé par le service lui-même
+const authHeader = { Authorization: `Bearer ${jwt.sign({ id: "user-1", role: "EMPLOYE", permissions: [] }, "test-secret", { expiresIn: "5m" })}` };
+
 
 const A = "11111111-1111-4111-8111-111111111111";
 const B = "22222222-2222-4222-8222-222222222222";
@@ -170,7 +177,7 @@ describe("Routes HTTP /api/equipments/lookup et /status/batch", () => {
   });
 
   const post = async (path: string, body: unknown) => {
-    const res = await fetch(`${base}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res = await fetch(`${base}${path}`, { method: "POST", headers: { "Content-Type": "application/json", ...authHeader }, body: JSON.stringify(body) });
     return { status: res.status, body: (await res.json()) as any };
   };
 

@@ -7,6 +7,9 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+# Adresse encodée dans les QR codes (fixée à la construction) ; vide : l'origine de la page est utilisée
+ARG VITE_PUBLIC_APP_URL=""
+ENV VITE_PUBLIC_APP_URL=$VITE_PUBLIC_APP_URL
 RUN npm run build
 
 # --- Étape 2 : servir avec Nginx ---

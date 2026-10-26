@@ -60,4 +60,23 @@ export const userRepository = {
       where: { departmentId },
       data: { departmentId: null },
     }),
+
+  /** Retourne les authUserId (non nuls) de tous les utilisateurs non-ADMIN sauf le compte connecté */
+  findNonAdminAuthUserIds: (excludeAuthUserId: string): Promise<{ authUserId: string | null }[]> =>
+    prisma.user.findMany({
+      where: {
+        role: { not: "ADMIN" },
+        authUserId: { not: excludeAuthUserId },
+      },
+      select: { authUserId: true },
+    }),
+
+  /** Supprime tous les utilisateurs non-ADMIN sauf le compte connecté */
+  purgeNonAdmin: (excludeAuthUserId: string): Promise<{ count: number }> =>
+    prisma.user.deleteMany({
+      where: {
+        role: { not: "ADMIN" },
+        authUserId: { not: excludeAuthUserId },
+      },
+    }),
 };

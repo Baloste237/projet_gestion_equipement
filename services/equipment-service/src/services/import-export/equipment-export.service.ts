@@ -1,9 +1,10 @@
 import ExcelJS from "exceljs";
 import { prisma } from "../../config/prisma";
+import { loadAssigneeNames } from "./equipment-export-assignee";
 
 export type ExportFormat = "csv" | "xlsx";
 
-type ExportedEquipment = Awaited<ReturnType<typeof findEquipmentsForExport>>[number];
+type ExportedEquipment = Awaited<ReturnType<typeof findEquipmentsForExport>>[number] & { assigneeName?: string | null };
 
 const findEquipmentsForExport = () =>
   prisma.equipment.findMany({
@@ -29,6 +30,10 @@ const COLUMNS: { header: string; value: (e: ExportedEquipment) => string | numbe
   { header: "Prix", value: (e) => (e.purchasePrice === null ? null : Number(e.purchasePrice)) },
   { header: "Fin garantie", value: (e) => formatDate(e.warrantyEndDate) },
   { header: "Notes", value: (e) => e.notes },
+  { header: "ETAT", value: (e) => e.condition },
+  { header: "DATE DE MISE EN SERVICE", value: (e) => formatDate(e.commissionedAt) },
+  { header: "DATE DE MISE HORS SERVICE", value: (e) => formatDate(e.decommissionedAt) },
+  { header: "MIS A LA DISPOSITION DE", value: (e) => e.assigneeName ?? null },
   { header: "Créé le", value: (e) => e.createdAt.toISOString() },
 ];
 
@@ -60,8 +65,10 @@ const toXlsx = async (equipments: ExportedEquipment[]) => {
 };
 
 export const equipmentExportService = {
-  export: async (format: ExportFormat) => {
-    const equipments = await findEquipmentsForExport();
+  // Le bénéficiaire actuel est lu avec le jeton de l'appelant ; s'il est illisible, sa colonne reste vide
+  export: async (format: ExportFormat, authorization?: string) => {
+    const [found, assigneeNames] = await Promise.all([findEquipmentsForExport(), loadAssigneeNames(authorization)]);
+    const equipments: ExportedEquipment[] = found.map((e) => ({ ...e, assigneeName: assigneeNames.get(e.id) ?? null }));
     const date = new Date().toISOString().slice(0, 10);
     if (format === "xlsx") {
       return {

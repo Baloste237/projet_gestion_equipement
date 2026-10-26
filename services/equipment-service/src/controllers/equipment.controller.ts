@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import { equipmentService } from "../services/equipment.service";
 import { equipmentImportService } from "../services/import-export/equipment-import.service";
 import { equipmentExportService } from "../services/import-export/equipment-export.service";
+import { authServiceClient } from "../clients/auth-service.client";
+import { authorOf } from "../middlewares/security";
+import { HttpError } from "../errors/http-error";
+import { parseEquipmentListQuery } from "../validators/equipment-list.validator";
 
 export const equipmentController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
@@ -10,10 +14,11 @@ export const equipmentController = {
       res.status(201).json({ success: true, data: equipment });
     } catch (err) { next(err); }
   },
-  getAll: async (_req: Request, res: Response, next: NextFunction) => {
+  getAll: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const equipments = await equipmentService.getAll();
-      res.status(200).json({ success: true, data: equipments });
+      // `data` seul sans page ni pageSize (liste complète) ; avec : `data` et `meta`
+      const result = await equipmentService.getAll(parseEquipmentListQuery(req.query));
+      res.status(200).json({ success: true, ...result });
     } catch (err) { next(err); }
   },
   getById: async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
@@ -36,9 +41,9 @@ export const equipmentController = {
   },
   updateStatusBatch: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const author = req.headers["x-user-id"];
+      const author = authorOf(req);
       const { ids, from, to } = req.body;
-      const result = await equipmentService.updateStatusBatch(ids, from, to, typeof author === "string" && author ? author : "system");
+      const result = await equipmentService.updateStatusBatch(ids, from, to, author || "system");
       res.status(200).json({ success: true, data: result });
     } catch (err) { next(err); }
   },
@@ -87,17 +92,32 @@ export const equipmentController = {
           error: { code: "NO_FILE", message: "Aucun fichier reçu" },
         });
       }
-      const result = await equipmentImportService.import(req.file, req.body?.mapping);
+      const result = await equipmentImportService.import(req.file, req.body?.mapping, req.headers.authorization);
       res.status(201).json({ success: true, data: result });
     } catch (err) { next(err); }
   },
   exportFile: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const format = req.query.format === "xlsx" ? "xlsx" : "csv";
-      const file = await equipmentExportService.export(format);
+      const file = await equipmentExportService.export(format, req.headers.authorization);
       res.setHeader("Content-Type", file.contentType);
       res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
       res.status(200).send(file.buffer);
+    } catch (err) { next(err); }
+  },
+  purge: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) throw new HttpError(401, "Authentification requise");
+
+      const isPasswordValid = await authServiceClient.verifyPassword(authHeader, req.body.password);
+      if (!isPasswordValid) {
+        throw new HttpError(401, "Mot de passe incorrect");
+      }
+
+      const performedBy = authorOf(req) ?? "system";
+      const result = await equipmentService.purgeAll(performedBy);
+      res.status(200).json({ success: true, data: result });
     } catch (err) { next(err); }
   },
 };

@@ -2,6 +2,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import app from "./app";
+import { assertSecurityConfig } from "./middlewares/security";
+
+// Refuse de démarrer sans secret : aucune valeur de repli
+assertSecurityConfig();
 
 const PORT = process.env.PORT || 4002;
 

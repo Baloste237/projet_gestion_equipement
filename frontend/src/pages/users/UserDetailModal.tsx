@@ -163,6 +163,17 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
 
           <div className="bg-surface-container border border-outline-variant/60 rounded-lg p-3">
             <span className="block font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider mb-1">
+              Compte de connexion
+            </span>
+            <span className={`font-body-md text-body-md font-medium ${user.linked === false ? 'text-amber-400' : 'text-on-surface'}`}>
+              {user.linked === false
+                ? "Aucun compte relié : le rôle et l'état n'ont pas d'effet sur l'accès"
+                : 'Relié : le rôle et l\'état sont ceux du compte'}
+            </span>
+          </div>
+
+          <div className="bg-surface-container border border-outline-variant/60 rounded-lg p-3">
+            <span className="block font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider mb-1">
               Identifiant Système (ID)
             </span>
             <span className="font-mono text-xs text-on-surface-variant break-all">

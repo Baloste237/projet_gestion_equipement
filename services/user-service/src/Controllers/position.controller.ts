@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { positionService } from "../Services/position.service";
+import { authServiceClient } from "../clients/auth-service.client";
+import { AuthenticatedRequest } from "../middlewares/security";
 import { auditPublisher } from "../clients/audit-publisher.client";
 
-// L'identité de l'auteur est transmise par la gateway après vérification du jeton
-const author = (req: Request) => {
-  const id = req.headers["x-user-id"];
-  return typeof id === "string" && id ? id : "inconnu";
-};
+// L'identité de l'auteur vient du jeton vérifié par ce service
+const author = (req: Request) => (req as AuthenticatedRequest).user?.id || "inconnu";
 
 export const positionController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
@@ -71,6 +70,28 @@ export const positionController = {
     try {
       const position = await positionService.getById(req.params.id);
       res.status(200).json({ success: true, data: position });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  purge: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).json({ success: false, error: { code: "UNAUTHENTICATED", message: "Authentification requise" } });
+      }
+      const { password } = req.body as { password?: string };
+      if (!password) {
+        return res.status(400).json({ success: false, error: { code: "MISSING_PASSWORD", message: "Le mot de passe administrateur est requis" } });
+      }
+      const isPasswordValid = await authServiceClient.verifyPassword(authHeader, password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ success: false, error: { code: "INVALID_PASSWORD", message: "Mot de passe incorrect" } });
+      }
+      const performedBy = author(req);
+      const result = await positionService.purgeAll(performedBy);
+      res.status(200).json({ success: true, data: result });
     } catch (err) {
       next(err);
     }

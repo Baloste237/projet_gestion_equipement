@@ -28,4 +28,7 @@ export const positionRepository = {
 
   // Les utilisateurs rattachés passent à positionId = null (onDelete: SetNull)
   delete: (id: string) => prisma.position.delete({ where: { id } }),
+
+  // Supprime tous les postes ; les utilisateurs rattachés sont détachés automatiquement (SetNull)
+  purgeAll: (): Promise<{ count: number }> => prisma.position.deleteMany({}),
 };

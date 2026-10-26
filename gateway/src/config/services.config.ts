@@ -72,6 +72,13 @@ export const SERVICES_CONFIG: ServiceRoute[] = [
     requiresAuth: true,
   },
   {
+    // Fiche publique d'un équipement (scan du QR code) : seule route équipement sans authentification
+    path: "/public",
+    target: env.EQUIPMENT_SERVICE_URL,
+    requiresAuth: false,
+    rewritePath: "/api/public",
+  },
+  {
     path: "/uploads/equipments",
     target: env.EQUIPMENT_SERVICE_URL,
     requiresAuth: false,

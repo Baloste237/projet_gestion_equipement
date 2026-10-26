@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Pagination } from '../../components/ui/Pagination';
+import { useClientPagination } from '../../hooks/useClientPagination';
 import { AppLayout } from '../../components/layout/AppLayout';
 import { userService, departmentService, type User, type Department } from '../../services/api';
 import { UserModal } from './UserModal';
@@ -7,14 +9,26 @@ import { Button } from '../../components/ui/Button';
 import { getCountryByCode } from '../../data/countries';
 import { getImageUrl } from '../../utils/imageUrl';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { accountErrorMessage } from '../../utils/accountErrors';
+import { ConfirmPasswordPurgeModal } from '../../components/ui/ConfirmPasswordPurgeModal';
+
+// Lu une fois : seule la gestion des comptes est réservée à l'administrateur (le serveur refuse les autres en 403)
+const readIsAdmin = (): boolean => {
+  try {
+    return JSON.parse(localStorage.getItem('user') || '{}')?.role === 'ADMIN';
+  } catch {
+    return false;
+  }
+};
 
 export const UsersPage: React.FC = () => {
+  const isAdmin = readIsAdmin();
+  const [actionError, setActionError] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Confirmation Modal state
   const [confirmModalState, setConfirmModalState] = useState<{
     isOpen: boolean;
     user: User | null;
@@ -24,6 +38,11 @@ export const UsersPage: React.FC = () => {
     user: null,
     action: 'status',
   });
+
+  // Purge state
+  const [isPurgeModalOpen, setIsPurgeModalOpen] = useState(false);
+  const [purgeLoading, setPurgeLoading] = useState(false);
+  const [purgeError, setPurgeError] = useState<string | null>(null);
 
   const handleConfirmAction = async () => {
     const { user, action } = confirmModalState;
@@ -43,10 +62,29 @@ export const UsersPage: React.FC = () => {
         await userService.delete(user.id);
       }
       fetchUsersAndDepartments();
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Erreur ${action} utilisateur:`, err);
+      setActionError(accountErrorMessage(err, "L'action a échoué."));
     } finally {
       setConfirmModalState({ isOpen: false, user: null, action: 'status' });
+    }
+  };
+
+  const handlePurge = async (password: string) => {
+    try {
+      setPurgeLoading(true);
+      setPurgeError(null);
+      await userService.purge(password);
+      setIsPurgeModalOpen(false);
+      fetchUsersAndDepartments();
+    } catch (err: any) {
+      setPurgeError(
+        err.response?.data?.message ||
+        err.response?.data?.error?.message ||
+        'Erreur lors du vidage des utilisateurs'
+      );
+    } finally {
+      setPurgeLoading(false);
     }
   };
   
@@ -107,6 +145,9 @@ export const UsersPage: React.FC = () => {
       return matchesSearch && matchesRole && matchesDept && matchesStatus;
     });
   }, [users, searchTerm, roleFilter, deptFilter, statusFilter]);
+
+  // Pagination dans le navigateur ; les statistiques ci-dessous portent sur tous les utilisateurs
+  const paging = useClientPagination(filteredUsers, [searchTerm, roleFilter, deptFilter, statusFilter].join('|'));
 
   // Statistics
   const stats = useMemo(() => {
@@ -235,17 +276,39 @@ export const UsersPage: React.FC = () => {
             </select>
           </div>
 
-          <Button
-            onClick={() => {
-              setEditingUser(null);
-              setIsModalOpen(true);
-            }}
-            icon={<span className="material-symbols-outlined text-xl">person_add</span>}
-          >
-            Nouvel Utilisateur
-          </Button>
+          {isAdmin && (
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setPurgeError(null);
+                  setIsPurgeModalOpen(true);
+                }}
+                className="px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-400 font-medium rounded-lg text-sm flex items-center justify-center gap-2 hover:bg-red-500/20 hover:border-red-500/50 transition-colors"
+              >
+                <span className="material-symbols-outlined text-lg">delete_sweep</span>
+                <span>Vider la liste</span>
+              </button>
+              <Button
+                onClick={() => {
+                  setEditingUser(null);
+                  setIsModalOpen(true);
+                }}
+                icon={<span className="material-symbols-outlined text-xl">person_add</span>}
+              >
+                Nouvel Utilisateur
+              </Button>
+            </div>
+          )}
         </div>
       </div>
+
+      {actionError && (
+        <div role="alert" className="mb-4 p-3 rounded-lg border border-error/40 bg-error/10 text-error text-sm flex items-center justify-between">
+          <span>{actionError}</span>
+          <button type="button" onClick={() => setActionError(null)} className="underline cursor-pointer">Fermer</button>
+        </div>
+      )}
 
       {/* Users Table */}
       <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden shadow-lg">
@@ -282,7 +345,7 @@ export const UsersPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/30 text-body-md text-on-surface">
-                {filteredUsers.map((user) => {
+                {paging.pageItems.map((user) => {
                   const dept = departments.find((d) => d.id === user.departmentId) || user.department;
                   const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Utilisateur';
                   const isActive = user.isActive !== undefined ? user.isActive : (user.status !== 'INACTIF');
@@ -300,6 +363,14 @@ export const UsersPage: React.FC = () => {
                             )}
                           </div>
                           <span className="font-semibold text-on-surface">{fullName}</span>
+                          {user.linked === false && (
+                            <span
+                              className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border border-amber-500/40 bg-amber-500/10 text-amber-400"
+                              title="Aucun compte de connexion relié : le rôle et l'état de cette fiche n'ont pas d'effet sur l'accès"
+                            >
+                              Sans compte
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 px-4 text-on-surface-variant text-body-sm">
@@ -333,7 +404,8 @@ export const UsersPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setConfirmModalState({ isOpen: true, user, action: 'status' })}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
+                          disabled={!isAdmin}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
                             isActive
                               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/20'
                               : 'bg-red-500/10 text-red-400 border-red-500/40 hover:bg-red-500/20'
@@ -359,28 +431,33 @@ export const UsersPage: React.FC = () => {
                             <span className="material-symbols-outlined text-lg">visibility</span>
                           </button>
                           
-                          {/* Edit icon */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingUser(user);
-                              setIsModalOpen(true);
-                            }}
-                            className="p-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-colors cursor-pointer"
-                            title="Modifier"
-                          >
-                            <span className="material-symbols-outlined text-lg">edit</span>
-                          </button>
-                          
-                          {/* Delete icon */}
-                          <button
-                            type="button"
-                            onClick={() => setConfirmModalState({ isOpen: true, user, action: 'delete' })}
-                            className="p-1.5 rounded-lg text-on-surface-variant hover:text-error hover:bg-error/10 transition-colors cursor-pointer"
-                            title="Supprimer"
-                          >
-                            <span className="material-symbols-outlined text-lg">delete</span>
-                          </button>
+                          {/* Édition et suppression : réservées à l'administrateur (le serveur refuse les autres) */}
+                          {isAdmin && (
+                            <>
+                              {/* Edit icon */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingUser(user);
+                                  setIsModalOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-colors cursor-pointer"
+                                title="Modifier"
+                              >
+                                <span className="material-symbols-outlined text-lg">edit</span>
+                              </button>
+                              
+                              {/* Delete icon */}
+                              <button
+                                type="button"
+                                onClick={() => setConfirmModalState({ isOpen: true, user, action: 'delete' })}
+                                className="p-1.5 rounded-lg text-on-surface-variant hover:text-error hover:bg-error/10 transition-colors cursor-pointer"
+                                title="Supprimer"
+                              >
+                                <span className="material-symbols-outlined text-lg">delete</span>
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -390,6 +467,13 @@ export const UsersPage: React.FC = () => {
             </table>
           </div>
         )}
+        <Pagination
+              page={paging.page}
+              pageSize={paging.pageSize}
+              total={paging.total}
+              onPageChange={paging.setPage}
+              onPageSizeChange={paging.setPageSize}
+            />
       </div>
 
       {/* Edit/Create User Modal */}
@@ -428,6 +512,16 @@ export const UsersPage: React.FC = () => {
         confirmText={confirmModalState.action === 'status' ? 'Changer le statut' : 'Supprimer l\'utilisateur'}
         cancelText="Annuler"
         variant={confirmModalState.action === 'status' ? 'warning' : 'danger'}
+      />
+
+      <ConfirmPasswordPurgeModal
+        isOpen={isPurgeModalOpen}
+        onClose={() => setIsPurgeModalOpen(false)}
+        onConfirm={handlePurge}
+        title="Vider la liste des utilisateurs"
+        description="Cette action supprimera tous les utilisateurs standards (non-administrateurs) et révoquera leurs accès. Votre compte et les autres comptes administrateurs seront préservés."
+        loading={purgeLoading}
+        error={purgeError}
       />
     </AppLayout>
   );

@@ -8,6 +8,8 @@ export const equipmentStatusEnum = z.enum([
   "A_COMPLETER",
 ]);
 
+export const equipmentConditionEnum = z.enum(["FONCTIONNEL", "NON_FONCTIONNEL"]);
+
 const optionalDate = z.coerce.date().optional().nullable();
 
 // Champs descriptifs supplémentaires (tous optionnels)
@@ -20,6 +22,16 @@ export const equipmentDetailsSchema = {
   purchasePrice: z.coerce.number().nonnegative().optional().nullable(),
   warrantyEndDate: optionalDate,
   notes: z.string().optional().nullable(),
+  commissionedAt: optionalDate,
+  decommissionedAt: optionalDate,
+};
+
+// La mise hors service ne peut pas précéder la mise en service (quand les deux dates sont fournies)
+export const serviceDatesAreCoherent = (data: { commissionedAt?: Date | null; decommissionedAt?: Date | null }) =>
+  !data.commissionedAt || !data.decommissionedAt || data.decommissionedAt >= data.commissionedAt;
+const serviceDatesRule = {
+  message: "La date de mise hors service ne peut pas précéder la date de mise en service",
+  path: ["decommissionedAt"],
 };
 
 export const createEquipmentSchema = z.object({
@@ -28,9 +40,10 @@ export const createEquipmentSchema = z.object({
   categoryId: z.string().uuid("L'ID de catégorie doit être un UUID valide"),
   supplierId: z.string().uuid("L'ID de fournisseur doit être un UUID valide").optional().nullable(),
   status: equipmentStatusEnum.optional().default("AVAILABLE"),
+  condition: equipmentConditionEnum.optional().default("FONCTIONNEL"),
   imageUrl: z.string().optional().nullable(),
   ...equipmentDetailsSchema,
-});
+}).refine(serviceDatesAreCoherent, serviceDatesRule);
 
 export const updateEquipmentSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").optional(),
@@ -38,9 +51,10 @@ export const updateEquipmentSchema = z.object({
   categoryId: z.string().uuid("L'ID de catégorie doit être un UUID valide").optional(),
   supplierId: z.string().uuid("L'ID de fournisseur doit être un UUID valide").optional().nullable(),
   status: equipmentStatusEnum.optional(),
+  condition: equipmentConditionEnum.optional(),
   imageUrl: z.string().optional().nullable(),
   ...equipmentDetailsSchema,
-});
+}).refine(serviceDatesAreCoherent, serviceDatesRule);
 
 export const transferEquipmentSchema = z.object({
   toUserId: z.string().uuid("L'ID d'utilisateur doit être un UUID valide").optional(),
@@ -62,3 +76,7 @@ export const lookupEquipmentsSchema = z.object({ ids: batchIds });
 export const batchStatusSchema = z
   .object({ ids: batchIds, from: equipmentStatusEnum, to: equipmentStatusEnum })
   .refine((data) => data.from !== data.to, { message: "Les statuts de départ et d'arrivée doivent différer" });
+
+export const purgeSchema = z.object({
+  password: z.string().min(1, "Le mot de passe administrateur est requis"),
+});

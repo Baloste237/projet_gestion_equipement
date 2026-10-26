@@ -3,6 +3,7 @@ import { assignmentController } from "../Controllers/assignment.controller";
 import { validate } from "../middlewares/validate";
 import { authenticate } from "../middlewares/authenticate";
 import { checkPermission } from "../middlewares/check-permission";
+import { internalOnly } from "../middlewares/internal-only";
 import {
   createAssignmentSchema,
   createBulkAssignmentSchema,
@@ -146,6 +147,46 @@ router.post(
  *         description: Non authentifié
  */
 router.get("/", authenticate, checkPermission("assignment:read"), assignmentController.getAll);
+
+/**
+ * @swagger
+ * /assignments/active-summary:
+ *   get:
+ *     summary: Affectations actives, sans enrichissement (équipement, type et identifiant de l'assigné)
+ *     tags: [Assignments]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Une entrée par équipement actuellement affecté
+ *       401:
+ *         description: Non authentifié
+ *       403:
+ *         description: Permissions insuffisantes (assignment:read)
+ */
+/**
+ * @swagger
+ * /assignments/internal/active/{equipmentId}:
+ *   get:
+ *     summary: Bénéficiaire actuel d'un équipement (appel de service à service, fiche publique)
+ *     description: Réservé aux services internes par le secret partagé `x-internal-token`. Renvoie uniquement le type et le nom.
+ *     tags: [Assignments]
+ *     parameters:
+ *       - in: path
+ *         name: equipmentId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: "`data` vaut null quand l'équipement n'est pas affecté"
+ *       403:
+ *         description: Secret interne absent ou incorrect
+ */
+router.get("/internal/active/:equipmentId", internalOnly, assignmentController.getActiveAssignee);
+router.post("/internal/purge", internalOnly, assignmentController.purgeAllInternal);
+
+// Déclarée avant « /:id » pour ne pas être prise pour un identifiant
+router.get("/active-summary", authenticate, checkPermission("assignment:read"), assignmentController.getActiveSummary);
 
 /**
  * @openapi
