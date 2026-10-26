@@ -4,6 +4,18 @@ export interface CreateEquipmentDTO {
   categoryId: string;
   supplierId?: string | null;
   status?: string;
+  imageUrl?: string | null;
+  barcode?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  location?: string | null;
+  purchaseDate?: string | Date | null;
+  purchasePrice?: number | null;
+  warrantyEndDate?: string | Date | null;
+  notes?: string | null;
+  condition?: string;
+  commissionedAt?: string | Date | null;
+  decommissionedAt?: string | Date | null;
 }
 
 export interface UpdateEquipmentDTO {
@@ -12,6 +24,18 @@ export interface UpdateEquipmentDTO {
   status?: string;
   categoryId?: string;
   supplierId?: string | null;
+  imageUrl?: string | null;
+  barcode?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  location?: string | null;
+  purchaseDate?: string | Date | null;
+  purchasePrice?: number | null;
+  warrantyEndDate?: string | Date | null;
+  notes?: string | null;
+  condition?: string;
+  commissionedAt?: string | Date | null;
+  decommissionedAt?: string | Date | null;
 }
 
 export interface TransferEquipmentDTO {
@@ -27,5 +51,26 @@ export interface EquipmentResponseDTO {
   status: string;
   categoryId: string;
   supplierId: string | null;
+  imageUrl?: string | null;
+  barcode?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  location?: string | null;
+  purchaseDate?: string | Date | null;
+  purchasePrice?: number | null;
+  warrantyEndDate?: string | Date | null;
+  notes?: string | null;
+  condition?: string;
+  commissionedAt?: string | Date | null;
+  decommissionedAt?: string | Date | null;
   createdAt: Date;
+}
+
+export type BatchConflictReason = "NOT_FOUND" | "STATUS_MISMATCH";
+
+export interface BatchConflict {
+  id: string;
+  reason: BatchConflictReason;
+  /** Statut actuel de l'équipement (absent si introuvable) */
+  status?: string;
 }

@@ -1,4 +1,6 @@
 import { departmentRepository } from "../Repositories/departmentRepository";
+import { userRepository } from "../Repositories/user.repository";
+import { auditPublisher } from "../clients/audit-publisher.client";
 import { CreateDepartmentDTO, UpdateDepartmentDTO } from "../Types/department.type";
 
 export const departmentService = {
@@ -12,11 +14,33 @@ export const departmentService = {
   update: async (id: string, data: UpdateDepartmentDTO) => {
     const department = await departmentRepository.findById(id);
     if (!department) throw new Error("DEPARTMENT_NOT_FOUND");
-    return departmentRepository.update(id, data);
+
+    const updatedDepartment = await departmentRepository.update(id, data);
+
+    if (data.isActive === false || data.status === "INACTIF") {
+      await userRepository.deactivateByDepartmentId(id);
+    } else if (data.isActive === true || data.status === "ACTIF") {
+      await userRepository.reactivateByDepartmentId(id);
+    }
+
+    return updatedDepartment;
   },
   delete: async (id: string) => {
     const department = await departmentRepository.findById(id);
     if (!department) throw new Error("DEPARTMENT_NOT_FOUND");
+    await userRepository.unassignDepartment(id);
     return departmentRepository.delete(id);
+  },
+
+  purgeAll: async (performedBy: string) => {
+    const result = await departmentRepository.purgeAll();
+    void auditPublisher.publish({
+      action: "DEPARTMENT_LIST_PURGED",
+      entityType: "Department",
+      entityId: "all",
+      performedBy,
+      metadata: { deletedCount: result.count },
+    });
+    return result;
   },
 };

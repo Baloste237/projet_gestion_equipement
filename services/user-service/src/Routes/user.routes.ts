@@ -1,14 +1,19 @@
 import { Router } from "express";
 import { userController } from "../Controllers/user.controller";
 import { validate } from "../middlewares/validate";
+import { requireRole, requireOwnerOrAdmin } from "../middlewares/security";
+import { userRepository } from "../Repositories/user.repository";
 import {
   createUserSchema,
   updateProfileSchema,
   updateRoleSchema,
 } from "../validators/user.validator";
-import { uploadAvatar } from "../Config/upload";
+import { uploadAvatar, verifyImageContent } from "../Config/upload";
 
 const router = Router();
+
+// Le jeton porte l'identifiant d'authentification (authUserId), pas celui du profil
+const resolveOwner = async (profileId: string) => (await userRepository.findById(profileId))?.authUserId ?? null;
 
 /**
  * @openapi
@@ -37,7 +42,7 @@ const router = Router();
  *       400:
  *         description: Données invalides
  */
-router.post("/", validate(createUserSchema), userController.create);
+router.post("/", requireRole("ADMIN"), validate(createUserSchema), userController.create);
 
 /**
  * @openapi
@@ -61,6 +66,23 @@ router.post("/", validate(createUserSchema), userController.create);
  *                   items: { $ref: '#/components/schemas/User' }
  */
 router.get("/", userController.getAll);
+
+/**
+ * @openapi
+ * /api/users/me:
+ *   get:
+ *     summary: Fiche de l'utilisateur connecté (retrouvée par l'identifiant de son compte)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Fiche reliée au compte connecté
+ *       404:
+ *         description: Aucune fiche reliée à ce compte
+ */
+// Doit précéder /:id, sinon « me » serait lu comme un identifiant de fiche
+router.get("/me", userController.me);
 
 /**
  * @openapi
@@ -115,7 +137,7 @@ router.get("/:id", userController.getById);
  *       404:
  *         description: Utilisateur introuvable
  */
-router.patch("/:id", validate(updateProfileSchema), userController.updateProfile);
+router.patch("/:id", requireOwnerOrAdmin(resolveOwner), validate(updateProfileSchema), userController.updateProfile);
 
 /**
  * @openapi
@@ -146,7 +168,7 @@ router.patch("/:id", validate(updateProfileSchema), userController.updateProfile
  *       400:
  *         description: Fichier manquant ou invalide
  */
-router.post("/:id/avatar", uploadAvatar.single("avatar"), userController.uploadAvatar);
+router.post("/:id/avatar", requireOwnerOrAdmin(resolveOwner), uploadAvatar.single("avatar"), verifyImageContent, userController.uploadAvatar);
 
 /**
  * @openapi
@@ -173,7 +195,7 @@ router.post("/:id/avatar", uploadAvatar.single("avatar"), userController.uploadA
  *       404:
  *         description: Utilisateur introuvable
  */
-router.patch("/:id/role", validate(updateRoleSchema), userController.updateRole);
+router.patch("/:id/role", requireRole("ADMIN"), validate(updateRoleSchema), userController.updateRole);
 
 /**
  * @openapi
@@ -192,7 +214,7 @@ router.patch("/:id/role", validate(updateRoleSchema), userController.updateRole)
  *       200:
  *         description: Compte désactivé
  */
-router.patch("/:id/deactivate", userController.deactivate);
+router.patch("/:id/deactivate", requireRole("ADMIN"), userController.deactivate);
 
 /**
  * @openapi
@@ -211,7 +233,7 @@ router.patch("/:id/deactivate", userController.deactivate);
  *       200:
  *         description: Compte réactivé
  */
-router.patch("/:id/reactivate", userController.reactivate);
+router.patch("/:id/reactivate", requireRole("ADMIN"), userController.reactivate);
 
 /**
  * @openapi
@@ -232,6 +254,39 @@ router.patch("/:id/reactivate", userController.reactivate);
  *       404:
  *         description: Utilisateur introuvable
  */
-router.delete("/:id", userController.delete);
+router.delete("/:id", requireRole("ADMIN"), userController.delete);
+
+/**
+ * @openapi
+ * /api/users/purge:
+ *   post:
+ *     summary: Vider la liste des utilisateurs non-admin (ADMIN uniquement)
+ *     description: |
+ *       Supprime tous les utilisateurs dont le rôle n'est pas ADMIN, sauf le compte de l'administrateur
+ *       actuellement connecté. Révoque leurs comptes dans auth-service. Requiert le mot de passe admin.
+ *       L'action est journalisée (USER_LIST_PURGED).
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password]
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: Mot de passe actuel de l'administrateur
+ *     responses:
+ *       200:
+ *         description: Utilisateurs non-admin supprimés avec succès
+ *       401:
+ *         description: Mot de passe incorrect ou non authentifié
+ *       403:
+ *         description: Réservé au rôle ADMIN
+ */
+router.post("/purge", requireRole("ADMIN"), userController.purge);
 
 export default router;

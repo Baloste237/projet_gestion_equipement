@@ -83,6 +83,30 @@ services/equipment-service/
    - `app.ts` : Centralisation des routes et des middlewares globaux (CORS, Helmet, Error Handler).
    - `server.ts` : Démarrage du serveur sur le port spécifié (4003 par défaut).
 
+## Import et export des équipements
+
+| Méthode | Route | Rôle |
+|---|---|---|
+| `POST` | `/api/equipments/import/preview` | Lit un fichier `.csv` (séparateur `,` ou `;`) ou `.xlsx` (5 Mo max) **sans rien créer** et renvoie `headers`, `rowCount`, `sampleRows` (5 premières lignes), `suggestedMapping` et la liste des `fields` |
+| `POST` | `/api/equipments/import` | Importe le fichier (`file`, multipart) avec un `mapping` JSON facultatif `{ "En-tête du fichier": "champ" }` ; atomique : rien n'est enregistré si une ligne est invalide |
+| `GET` | `/api/equipments/export?format=csv\|xlsx` | Exporte l'inventaire avec les en-têtes reconnus par l'import (le fichier est ré-importable) |
+
+- `suggestedMapping` a exactement le format attendu par le champ `mapping` de l'import : l'interface l'affiche pré-rempli, l'utilisateur corrige les colonnes non reconnues, puis envoie le résultat.
+- Une ligne de `QUANTITE` N crée N équipements ; sans numéro de série ou sans catégorie, un numéro `TMP-…` est généré et le statut est `A_COMPLETER`.
+- L'aperçu et l'import partagent la même lecture du fichier (mêmes règles, mêmes erreurs). Le fichier est envoyé deux fois (aperçu, puis import) et n'est jamais conservé sur le serveur.
+- Tests : `npm test` (`tests/import-export.unit.test.ts`).
+
+## Routes groupées (utilisées par l'affectation groupée)
+
+| Méthode | Route | Rôle |
+|---|---|---|
+| `POST` | `/api/equipments/lookup` | Lit jusqu'à 200 équipements en un appel (`{ "ids": [...] }` : `id`, `name`, `serialNumber`, `status`). Les identifiants inconnus sont absents de la réponse. |
+| `POST` | `/api/equipments/status/batch` | Passe `ids` du statut `from` au statut `to` **en une transaction, seulement si tous** sont au statut `from`. Sinon rien n'est modifié et la réponse `409` liste les équipements en défaut (`NOT_FOUND` ou `STATUS_MISMATCH`). |
+
+- Chaque équipement modifié donne lieu à l'audit `EQUIPMENT_UPDATED` et à l'événement `equipment.updated` (avant/après), comme la mise à jour unitaire : les KPIs restent exacts. L'auteur est lu dans l'en-tête `x-user-id` (à défaut « system »).
+- La condition sur `from` protège aussi contre un changement de statut concurrent.
+- Plafond de 200 identifiants, sans doublon.
+
 ## Prochaines Étapes
 
 - **Authentification et RBAC** : Implémenter les middlewares `authenticate.ts` et `check-permission.ts` lorsque le service d'authentification sera prêt.

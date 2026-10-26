@@ -79,6 +79,7 @@ const swaggerSpec = swaggerJsdoc({
             id: { type: "string", format: "uuid" },
             name: { type: "string", example: "Informatique" },
             description: { type: "string", example: "Matériel informatique et ordinateurs" },
+            equipmentCount: { type: "integer", example: 3, description: "Nombre d'équipements rattachés" },
             createdAt: { type: "string", format: "date-time" },
           },
         },

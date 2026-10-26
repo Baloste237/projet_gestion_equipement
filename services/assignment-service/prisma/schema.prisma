@@ -7,17 +7,32 @@ datasource db {
 }
 
 model Assignment {
-  id          String    @id @default(uuid())
-  equipmentId String
-  userId      String
-  assignedAt  DateTime  @default(now())
-  status      String    @default("ACTIVE") // ACTIVE | TRANSFERRED | RETURNED
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                 String    @id @default(uuid())
+  equipmentId        String
+  assigneeType       AssigneeType
+  assigneeId         String
+  assignedAt         DateTime  @default(now())
+  expectedReturnDate DateTime?
+  handoverCondition  String?   @default("GOOD")
+  status             String    @default("ACTIVE") // ACTIVE | TRANSFERRED | RETURNED
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   transfers   Transfer[]
   returnInfo  Return?
+
+  @@index([assigneeType, assigneeId])
+  // Index unique PARTIEL "Assignment_equipmentId_active_key" ON (equipmentId) WHERE status = 'ACTIVE' :
+  // un équipement n'a qu'une affectation active. Prisma ne sait pas l'exprimer, il est créé dans la migration
+  // 20260928140000_one_active_assignment_per_equipment ; appliquer avec `prisma migrate deploy` (une
+  // `migrate dev` pourrait proposer de le supprimer).
+}
+
+enum AssigneeType {
+  USER
+  DEPARTMENT
+  POSITION
 }
 
 model Transfer {

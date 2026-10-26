@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { departmentController } from "../Controllers/department.controller";
 import { validate } from "../middlewares/validate";
+import { requireRole } from "../middlewares/security";
 import {
   createDepartmentSchema,
   updateDepartmentSchema,
@@ -33,7 +34,7 @@ const router = Router();
  *                 success: { type: boolean, example: true }
  *                 data: { $ref: '#/components/schemas/Department' }
  */
-router.post("/", validate(createDepartmentSchema), departmentController.create);
+router.post("/", requireRole("ADMIN"), validate(createDepartmentSchema), departmentController.create);
 
 /**
  * @openapi
@@ -114,7 +115,7 @@ router.get("/:id", departmentController.getById);
  *       404:
  *         description: Département introuvable
  */
-router.patch("/:id", validate(updateDepartmentSchema), departmentController.update);
+router.patch("/:id", requireRole("ADMIN"), validate(updateDepartmentSchema), departmentController.update);
 
 /**
  * @openapi
@@ -135,6 +136,33 @@ router.patch("/:id", validate(updateDepartmentSchema), departmentController.upda
  *       404:
  *         description: Département introuvable
  */
-router.delete("/:id", departmentController.delete);
+router.delete("/:id", requireRole("ADMIN"), departmentController.delete);
+
+/**
+ * @openapi
+ * /api/departments/purge:
+ *   post:
+ *     summary: Vider la liste des départements (ADMIN uniquement)
+ *     tags: [Departments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password]
+ *             properties:
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Départements supprimés avec succès
+ *       401:
+ *         description: Mot de passe incorrect
+ *       403:
+ *         description: Réservé au rôle ADMIN
+ */
+router.post("/purge", requireRole("ADMIN"), departmentController.purge);
 
 export default router;

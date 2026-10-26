@@ -4,6 +4,8 @@ import { signAccessToken, generateRefreshTokenValue, parseExpiryToDate } from ".
 import { registerSchema, loginSchema, refreshSchema } from "../src/validators/auth.validator";
 import jwt from "jsonwebtoken";
 
+process.env.JWT_SECRET = "test-secret";
+
 describe("Auth Service Unit Tests - JWT & Validators", () => {
   test("signAccessToken generates a valid JWT token", () => {
     const payload = { userId: "user-123", email: "test@example.com", role: "ADMIN" };
