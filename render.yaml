@@ -28,6 +28,6 @@ services:
 databases:
   - name: equip-core-db
     databaseName: equip_core_db
-    user: postgres
+    user: equip_admin
     plan: free
     region: frankfurt
