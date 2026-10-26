@@ -1,9 +1,38 @@
 import { z } from "zod";
+import { ASSIGNEE_TYPES, ASSIGNMENT_STATUSES, MAX_BULK_ASSIGNMENTS } from "../types/assignment.type";
 
-export const createAssignmentSchema = z.object({
-  equipmentId: z.string().uuid(),
-  userId: z.string().uuid(),
+// Compatibilité : un ancien payload `{ userId }` est traduit en `{ assigneeType: "USER", assigneeId }`
+const mapLegacyUserId = (body: unknown) => {
+  if (body && typeof body === "object" && "userId" in body && !("assigneeId" in body)) {
+    const { userId, ...rest } = body as Record<string, unknown>;
+    return { ...rest, assigneeType: "USER", assigneeId: userId };
+  }
+  return body;
+};
+
+export const createAssignmentSchema = z.preprocess(
+  mapLegacyUserId,
+  z.object({
+    equipmentId: z.string().uuid(),
+    assigneeType: z.enum(ASSIGNEE_TYPES),
+    assigneeId: z.string().uuid(),
+    notes: z.string().optional(),
+    expectedReturnDate: z.string().optional(),
+    handoverCondition: z.string().optional(),
+  })
+);
+
+export const createBulkAssignmentSchema = z.object({
+  assigneeType: z.enum(ASSIGNEE_TYPES),
+  assigneeId: z.string().uuid(),
+  equipmentIds: z
+    .array(z.string().uuid())
+    .min(1, "Au moins un équipement est requis")
+    .max(MAX_BULK_ASSIGNMENTS, `Au plus ${MAX_BULK_ASSIGNMENTS} équipements par affectation groupée`)
+    .refine((ids) => new Set(ids).size === ids.length, "La liste contient des équipements en double"),
   notes: z.string().optional(),
+  expectedReturnDate: z.string().optional(),
+  handoverCondition: z.string().optional(),
 });
 
 export const createTransferSchema = z.object({
@@ -14,4 +43,10 @@ export const createTransferSchema = z.object({
 export const createReturnSchema = z.object({
   condition: z.enum(["GOOD", "DAMAGED", "LOST"]),
   note: z.string().optional(),
+});
+
+export const assignmentFiltersSchema = z.object({
+  assigneeType: z.enum(ASSIGNEE_TYPES).optional(),
+  assigneeId: z.string().uuid().optional(),
+  status: z.enum(ASSIGNMENT_STATUSES).optional(),
 });

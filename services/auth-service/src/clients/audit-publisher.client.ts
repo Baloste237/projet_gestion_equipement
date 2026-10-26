@@ -9,34 +9,44 @@ interface AuditEventParams {
   metadata?: Record<string, unknown>;
 }
 
+const AUDIT_SERVICE_HTTP_URL = process.env.AUDIT_SERVICE_URL || "http://localhost:4006";
+
 export const auditPublisher = {
-  publish: (params: AuditEventParams) => {
-    const channel = getChannel();
-
-    if (!channel) {
-      console.warn(`[audit-publisher] Canal RabbitMQ indisponible, événement perdu: ${params.routingKey}`);
-      return;
-    }
-
+  publish: async (params: AuditEventParams) => {
     const payload = {
       action: params.action,
       entityType: params.entityType,
       entityId: params.entityId,
       performedBy: params.performedBy,
-      serviceName: process.env.SERVICE_NAME,
+      serviceName: process.env.SERVICE_NAME || "auth-service",
       metadata: params.metadata,
-      timestamp: new Date().toISOString(),
     };
 
+    const channel = getChannel();
+
+    if (channel) {
+      try {
+        channel.publish(
+          EXCHANGE,
+          params.routingKey,
+          Buffer.from(JSON.stringify({ ...payload, timestamp: new Date().toISOString() })),
+          { persistent: true }
+        );
+        return;
+      } catch (err) {
+        console.error(`[audit-publisher] Échec publication RabbitMQ, fallback HTTP...`);
+      }
+    }
+
+    // HTTP Fallback direct vers audit-service via fetch natif
     try {
-      channel.publish(
-        EXCHANGE,
-        params.routingKey,
-        Buffer.from(JSON.stringify(payload)),
-        { persistent: true }
-      );
-    } catch (err) {
-      console.error(`[audit-publisher] Échec de publication:`, err);
+      await fetch(`${AUDIT_SERVICE_HTTP_URL}/audit-logs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-internal-token": process.env.INTERNAL_SERVICE_TOKEN || "" },
+        body: JSON.stringify(payload),
+      });
+    } catch (err: any) {
+      console.warn(`[audit-publisher] Échec fallback HTTP:`, err.message);
     }
   },
 };

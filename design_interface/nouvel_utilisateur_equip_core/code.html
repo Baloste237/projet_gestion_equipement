@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EQUIP-CORE - New User</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#2fd9f4",
+                        "tertiary-fixed": "#a2eeff",
+                        "secondary-fixed": "#dfe2ef",
+                        "on-secondary-fixed-variant": "#434751",
+                        "surface-bright": "#393939",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#002f36",
+                        "inverse-surface": "#e5e2e1",
+                        "surface": "#131313",
+                        "surface-dim": "#131313",
+                        "error-container": "#93000a",
+                        "secondary": "#c3c6d3",
+                        "inverse-on-surface": "#313030",
+                        "secondary-fixed-dim": "#c3c6d3",
+                        "surface-tint": "#adc6ff",
+                        "on-tertiary-fixed": "#001f25",
+                        "primary-container": "#4d8eff",
+                        "on-primary-container": "#00285d",
+                        "tertiary-fixed-dim": "#2fd9f4",
+                        "background": "#131313",
+                        "on-secondary-container": "#b5b8c5",
+                        "on-tertiary": "#00363e",
+                        "primary": "#adc6ff",
+                        "outline-variant": "#424754",
+                        "surface-variant": "#353535",
+                        "surface-container-highest": "#353535",
+                        "on-surface-variant": "#c2c6d6",
+                        "inverse-primary": "#005ac2",
+                        "surface-container-high": "#2a2a2a",
+                        "outline": "#8c909f",
+                        "error": "#ffb4ab",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-secondary": "#2c303a",
+                        "surface-container": "#20201f",
+                        "on-surface": "#e5e2e1",
+                        "on-primary": "#002e6a",
+                        "surface-container-low": "#1c1b1b",
+                        "secondary-container": "#454953",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-tertiary-fixed-variant": "#004e5a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary-fixed": "#d8e2ff",
+                        "on-primary-fixed": "#001a42",
+                        "on-secondary-fixed": "#181c25",
+                        "on-background": "#e5e2e1",
+                        "tertiary-container": "#009fb4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "md": "24px",
+                        "margin": "32px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "lg": "40px",
+                        "xl": "64px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-sm": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0D0D0D;
+            color: #e5e2e1;
+        }
+        .bg-surface-level-1 { background-color: #1A1A1A; }
+        .bg-surface-level-2 { background-color: #262626; }
+        .border-standard { border-color: #333333; }
+        
+        /* Custom Scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0D0D0D; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #424754; 
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md h-screen flex overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar -->
+<nav class="bg-surface-container-low border-r border-outline-variant docked left-0 h-screen w-64 hidden md:flex flex-col p-md gap-base shrink-0">
+<div class="flex items-center gap-sm mb-lg">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary-container">dns</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-primary">System Admin</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Global Operations</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto pr-sm space-y-1">
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded bg-secondary-container text-on-secondary-container transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Users</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">lan</span>
+<span class="font-label-md text-label-md">Departments</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">construction</span>
+<span class="font-label-md text-label-md">Equipment</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">assignment_ind</span>
+<span class="font-label-md text-label-md">Assignments</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md text-label-md">Inventory</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">build</span>
+<span class="font-label-md text-label-md">Maintenance</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-label-md text-label-md">Audit</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</div>
+<div class="mt-auto pt-md border-t border-standard space-y-1">
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs rounded text-on-surface-variant hover:bg-surface-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-outline-variant docked full-width top-0 sticky z-50 flex justify-between items-center w-full px-margin h-16 shrink-0">
+<div class="flex items-center gap-md">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface md:hidden">EQUIP-CORE</span>
+<div class="hidden md:flex items-center text-on-surface-variant font-label-md">
+<span class="hover:text-primary cursor-pointer transition-colors">Users</span>
+<span class="material-symbols-outlined mx-xs text-[16px]">chevron_right</span>
+<span class="text-primary font-bold">New User</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-xs rounded active:scale-95 duration-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-xs rounded active:scale-95 duration-100">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="h-6 w-px bg-outline-variant mx-xs"></div>
+<button class="font-label-md text-label-md px-sm py-xs rounded border border-outline-variant text-on-surface hover:bg-surface-container-high transition-colors">
+                    Quick Export
+                </button>
+<button class="font-label-md text-label-md px-sm py-xs rounded bg-primary text-on-primary hover:bg-primary-container transition-colors">
+                    Create Asset
+                </button>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full border border-outline-variant object-cover ml-sm cursor-pointer hover:opacity-80 transition-opacity" data-alt="A professional headshot of a corporate system administrator in a brightly lit modern office setting, looking directly at the camera with a neutral expression. The image is cropped in a tight circle, suitable for a digital avatar. The lighting is crisp and cool, reflecting a highly technical and sober enterprise environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA732qHlBFLzLvFDthfunZkFRPDbLMZt353tbR5lU2i7KMEP9a7Inn8FsGjk27OxQTIakM7aYz44uJbiNiCynH_Oi8cfDjZS8DRNUehdNzjfeqMS94uGcpbK-14lKoQSi37ECQHCIcDrgs_Qx9Nm-6TpUG-RT2vcmokkJ0dU8AsqI1taebS8G5IxvHnq6EbYDV7LvO_aGB5Rqnkn2_aB_3lZo5Cpec9Flu5H_ZqW-YxsuymXN64Mk60"/>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 overflow-y-auto p-4 md:p-margin lg:px-xl xl:px-[120px]">
+<div class="max-w-5xl mx-auto space-y-md">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-lg">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-xs">Create User Profile</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Provision a new operational identity within the system. Required fields are marked.</p>
+</div>
+<div class="flex gap-sm shrink-0">
+<button class="px-md py-sm rounded border border-standard bg-[#131313] hover:bg-surface-variant text-on-surface font-label-md text-label-md transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                            Save Draft
+                        </button>
+<button class="px-md py-sm rounded bg-[#3B82F6] hover:bg-blue-600 text-white font-label-md text-label-md transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">send</span>
+                            Invite User
+                        </button>
+</div>
+</div>
+<!-- Form Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-md">
+<!-- Left Column: Identity -->
+<div class="lg:col-span-4 space-y-md">
+<!-- Avatar Upload Card -->
+<div class="bg-surface-level-1 border border-standard rounded-lg p-md flex flex-col items-center justify-center text-center">
+<div class="w-32 h-32 rounded-full border-2 border-dashed border-outline-variant mb-md flex items-center justify-center bg-[#0D0D0D] text-on-surface-variant cursor-pointer hover:border-primary hover:text-primary transition-colors group relative overflow-hidden">
+<span class="material-symbols-outlined text-[40px] group-hover:scale-110 transition-transform">add_a_photo</span>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="font-label-sm text-label-sm text-white">Upload</span>
+</div>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Profile Image</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">JPEG or PNG, max 5MB.<br/>Square aspect ratio recommended.</p>
+</div>
+<!-- Info Card -->
+<div class="bg-surface-level-1 border border-standard rounded-lg p-md">
+<h3 class="font-label-md text-label-md text-on-surface mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px] text-tertiary">info</span>
+                                Provisioning Protocol
+                            </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                                Newly invited users will receive a cryptographic link via their corporate email to complete account setup. Access permissions take effect immediately upon activation.
+                            </p>
+</div>
+</div>
+<!-- Right Column: Details & Access -->
+<div class="lg:col-span-8 space-y-md">
+<!-- Basic Information Card -->
+<div class="bg-surface-level-1 border border-standard rounded-lg p-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface border-b border-standard pb-sm mb-md">Operational Details</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Full Name -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Full Name *</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[18px] text-outline">person</span>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-standard text-on-surface rounded pl-[40px] pr-sm py-sm font-body-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-shadow placeholder-outline-variant" placeholder="Jane Doe" type="text"/>
+</div>
+</div>
+<!-- Employee ID -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Employee ID *</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[18px] text-outline">badge</span>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-standard text-on-surface rounded pl-[40px] pr-sm py-sm font-body-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-shadow placeholder-outline-variant font-mono" placeholder="EQ-000000" type="text"/>
+</div>
+</div>
+<!-- Corporate Email -->
+<div class="md:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Corporate Email *</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[18px] text-outline">mail</span>
+</div>
+<input class="w-full bg-[#0D0D0D] border border-standard text-on-surface rounded pl-[40px] pr-sm py-sm font-body-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-shadow placeholder-outline-variant" placeholder="jane.doe@organization.com" type="email"/>
+</div>
+</div>
+<!-- Department Dropdown -->
+<div class="md:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Department Assignment *</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[18px] text-outline">domain</span>
+</div>
+<select class="w-full bg-[#0D0D0D] border border-standard text-on-surface rounded pl-[40px] pr-lg py-sm font-body-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-shadow appearance-none cursor-pointer">
+<option disabled="" selected="" value="">Select Department...</option>
+<option value="eng">Engineering &amp; Logistics</option>
+<option value="maint">Maintenance Operations</option>
+<option value="audit">Quality Assurance &amp; Audit</option>
+<option value="field">Field Operations</option>
+</select>
+<div class="absolute inset-y-0 right-0 pr-sm flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[18px] text-outline">arrow_drop_down</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Role & Access Card -->
+<div class="bg-surface-level-1 border border-standard rounded-lg p-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface border-b border-standard pb-sm mb-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-tertiary">security</span>
+                                Security clearance
+                            </h3>
+<!-- Role Selection (Radio Cards) -->
+<div class="mb-lg">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-sm">System Role</label>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-sm">
+<label class="cursor-pointer relative">
+<input class="peer sr-only" name="role" type="radio" value="admin"/>
+<div class="bg-[#0D0D0D] border border-standard rounded p-sm peer-checked:border-[#3B82F6] peer-checked:bg-[#3B82F6]/10 transition-colors h-full">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-md text-label-md text-on-surface">Administrator</span>
+<span class="material-symbols-outlined text-[18px] text-[#3B82F6] opacity-0 peer-checked:opacity-100 transition-opacity">check_circle</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-snug">Full read/write access to all global resources and user management.</p>
+</div>
+</label>
+<label class="cursor-pointer relative">
+<input checked="" class="peer sr-only" name="role" type="radio" value="editor"/>
+<div class="bg-[#0D0D0D] border border-standard rounded p-sm peer-checked:border-[#3B82F6] peer-checked:bg-[#3B82F6]/10 transition-colors h-full">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-md text-label-md text-on-surface">Editor</span>
+<span class="material-symbols-outlined text-[18px] text-[#3B82F6] opacity-0 peer-checked:opacity-100 transition-opacity">check_circle</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-snug">Can modify equipment specs and assign assets within department.</p>
+</div>
+</label>
+<label class="cursor-pointer relative">
+<input class="peer sr-only" name="role" type="radio" value="viewer"/>
+<div class="bg-[#0D0D0D] border border-standard rounded p-sm peer-checked:border-[#3B82F6] peer-checked:bg-[#3B82F6]/10 transition-colors h-full">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-md text-label-md text-on-surface">Viewer</span>
+<span class="material-symbols-outlined text-[18px] text-[#3B82F6] opacity-0 peer-checked:opacity-100 transition-opacity">check_circle</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-snug">Read-only access to specific dashboards and reports.</p>
+</div>
+</label>
+</div>
+</div>
+<!-- Granular Permissions (Toggles) -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-sm">Granular Access Permissions</label>
+<div class="bg-[#0D0D0D] border border-standard rounded divide-y divide-standard">
+<!-- Toggle Row 1 -->
+<div class="p-sm flex items-center justify-between hover:bg-surface-variant/50 transition-colors">
+<div>
+<div class="font-body-sm text-on-surface font-medium">Asset Decommissioning</div>
+<div class="font-label-sm text-on-surface-variant text-[11px]">Allow user to mark hardware as end-of-life.</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-9 h-5 bg-surface-level-2 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#3B82F6]"></div>
+</label>
+</div>
+<!-- Toggle Row 2 -->
+<div class="p-sm flex items-center justify-between hover:bg-surface-variant/50 transition-colors">
+<div>
+<div class="font-body-sm text-on-surface font-medium">Export Audit Logs</div>
+<div class="font-label-sm text-on-surface-variant text-[11px]">Allow downloading of raw CSV compliance data.</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-9 h-5 bg-surface-level-2 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#3B82F6]"></div>
+</label>
+</div>
+<!-- Toggle Row 3 -->
+<div class="p-sm flex items-center justify-between hover:bg-surface-variant/50 transition-colors">
+<div>
+<div class="font-body-sm text-on-surface font-medium">Override Maintenance Schedules</div>
+<div class="font-label-sm text-on-surface-variant text-[11px]">Permit manual bypassing of automated service dates.</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-9 h-5 bg-surface-level-2 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#3B82F6]"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- BottomNavBar (Mobile Only) - Suppressed for transactional form screen as per logic -->
+</body></html>

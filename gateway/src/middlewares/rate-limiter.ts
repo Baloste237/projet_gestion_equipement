@@ -29,3 +29,19 @@ export const authRateLimiter = rateLimit({
     },
   },
 });
+
+// Fiche publique d'équipement (QR code, sans connexion) : limite par IP pour empêcher l'énumération d'identifiants.
+// Assez large pour un inventaire où l'on scanne beaucoup d'étiquettes depuis un même poste.
+export const publicRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: Number(process.env.PUBLIC_RATE_LIMIT_MAX) || 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: {
+      code: "TOO_MANY_REQUESTS",
+      message: "Trop de requêtes, réessayez dans quelques minutes",
+    },
+  },
+});

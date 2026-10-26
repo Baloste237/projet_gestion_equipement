@@ -9,6 +9,7 @@ export const ERROR_CODES = {
   ACCOUNT_DEACTIVATED: { statusCode: 403, message: "Ce compte est désactivé" },
   INVALID_REFRESH_TOKEN: { statusCode: 401, message: "Refresh token invalide ou révoqué" },
   REFRESH_TOKEN_EXPIRED: { statusCode: 401, message: "Refresh token expiré, veuillez vous reconnecter" },
+  LAST_ADMIN: { statusCode: 409, message: "Impossible : il doit rester au moins un administrateur actif" },
   CREDENTIAL_NOT_FOUND: { statusCode: 404, message: "Compte introuvable" },
 } as const;
 

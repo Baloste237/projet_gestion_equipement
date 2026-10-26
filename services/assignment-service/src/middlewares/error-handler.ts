@@ -12,6 +12,7 @@ export const errorHandler = (
       success: false,
       code: err.code,
       message: err.message,
+      ...(err.details !== undefined ? { details: err.details } : {}),
     });
   }
 
@@ -19,6 +20,6 @@ export const errorHandler = (
   return res.status(500).json({
     success: false,
     code: "INTERNAL_ERROR",
-    message: err.message || "Une erreur interne est survenue",
+    message: "Une erreur interne est survenue",
   });
 };

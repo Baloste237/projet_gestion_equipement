@@ -5,8 +5,10 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./Config/swagger";
 import { errorHandler } from "./middlewares/error-handler";
+import { authenticateOrInternal } from "./middlewares/security";
 import userRoutes from "./Routes/user.routes";
 import departmentRoutes from "./Routes/department.routes";
+import positionRoutes from "./Routes/position.routes";
 
 const app = express();
 
@@ -25,8 +27,10 @@ app.get("/api-docs.json", (_req, res) => res.json(swaggerSpec));
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // Routes
-app.use("/api/users", userRoutes);
-app.use("/api/departments", departmentRoutes);
+// Chaque service vérifie lui-même le jeton ; les lectures d'utilisateurs acceptent aussi le secret interne
+app.use("/api/users", authenticateOrInternal, userRoutes);
+app.use("/api/departments", authenticateOrInternal, departmentRoutes);
+app.use("/api/positions", authenticateOrInternal, positionRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

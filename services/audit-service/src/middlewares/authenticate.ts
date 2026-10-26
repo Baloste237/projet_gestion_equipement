@@ -20,7 +20,8 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
   }
 
   const token = authHeader.split(" ")[1]!;
-  const secret = process.env.JWT_SECRET || "votre_secret_partage_entre_services";
+  const secret = process.env.JWT_SECRET;
+  if (!secret) return next(new AppError("UNAUTHENTICATED", 401, "Token invalide ou expiré"));
 
   try {
     const decoded = jwt.verify(token, secret) as unknown as JwtPayload;

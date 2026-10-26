@@ -1,5 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { departmentService } from "../Services/department.service";
+import { authServiceClient } from "../clients/auth-service.client";
+import { AuthenticatedRequest } from "../middlewares/security";
+import { AppError } from "../errors/app-error";
+
+const actorOf = (req: Request) => (req as AuthenticatedRequest).user?.id;
 
 export const departmentController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
@@ -42,6 +47,25 @@ export const departmentController = {
     try {
       await departmentService.delete(req.params.id);
       res.status(200).json({ success: true, message: "Department deleted successfully" });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  purge: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) throw new AppError("UNAUTHENTICATED", 401, "Authentification requise");
+
+      const { password } = req.body as { password?: string };
+      if (!password) throw new AppError("MISSING_PASSWORD", 400, "Le mot de passe administrateur est requis");
+
+      const isPasswordValid = await authServiceClient.verifyPassword(authHeader, password);
+      if (!isPasswordValid) throw new AppError("INVALID_PASSWORD", 401, "Mot de passe incorrect");
+
+      const actor = actorOf(req) ?? "system";
+      const result = await departmentService.purgeAll(actor);
+      res.status(200).json({ success: true, data: result });
     } catch (err) {
       next(err);
     }

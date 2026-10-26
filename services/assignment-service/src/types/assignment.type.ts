@@ -1,7 +1,45 @@
+export const ASSIGNEE_TYPES = ["USER", "DEPARTMENT", "POSITION"] as const;
+export type AssigneeType = (typeof ASSIGNEE_TYPES)[number];
+
+export const ASSIGNMENT_STATUSES = ["ACTIVE", "TRANSFERRED", "RETURNED"] as const;
+export type AssignmentStatus = (typeof ASSIGNMENT_STATUSES)[number];
+
+// Filtres optionnels de GET /assignments : sans filtre, toutes les affectations sont renvoyées
+export interface AssignmentFilters {
+  assigneeType?: AssigneeType;
+  assigneeId?: string;
+  status?: AssignmentStatus;
+}
+
 export interface CreateAssignmentDTO {
   equipmentId: string;
-  userId: string;
+  assigneeType: AssigneeType;
+  assigneeId: string;
   notes?: string;
+  expectedReturnDate?: string;
+  handoverCondition?: string;
+}
+
+// Plafond d'équipements par affectation groupée (aligné sur les routes groupées d'equipment-service)
+export const MAX_BULK_ASSIGNMENTS = 200;
+
+export interface CreateBulkAssignmentDTO {
+  equipmentIds: string[];
+  assigneeType: AssigneeType;
+  assigneeId: string;
+  notes?: string;
+  expectedReturnDate?: string;
+  handoverCondition?: string;
+}
+
+export type BulkRefusalReason = "NOT_FOUND" | "NOT_AVAILABLE";
+
+// Équipement refusé lors de la validation d'une affectation groupée
+export interface BulkRefusal {
+  equipmentId: string;
+  name?: string;
+  serialNumber?: string;
+  reason: BulkRefusalReason;
 }
 
 export interface CreateTransferDTO {

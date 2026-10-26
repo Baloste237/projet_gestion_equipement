@@ -28,4 +28,7 @@ export const departmentRepository = {
     prisma.department.delete({
       where: { id },
     }),
+
+  purgeAll: (): Promise<{ count: number }> =>
+    prisma.department.deleteMany({}),
 };

@@ -1,0 +1,71 @@
+# ==========================================
+# Étape 1 : Compilation multi-services
+# ==========================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Installer les dépendances du Gateway
+COPY gateway/package*.json ./gateway/
+RUN cd gateway && npm install
+
+# Installer les dépendances de chaque microservice
+COPY services/auth-service/package*.json ./services/auth-service/
+RUN cd services/auth-service && npm install
+
+COPY services/user-service/package*.json ./services/user-service/
+RUN cd services/user-service && npm install
+
+COPY services/equipment-service/package*.json ./services/equipment-service/
+RUN cd services/equipment-service && npm install
+
+COPY services/assignment-service/package*.json ./services/assignment-service/
+RUN cd services/assignment-service && npm install
+
+COPY services/inventory-service/package*.json ./services/inventory-service/
+RUN cd services/inventory-service && npm install
+
+COPY services/audit-service/package*.json ./services/audit-service/
+RUN cd services/audit-service && npm install
+
+# Copie des sources complètes
+COPY gateway ./gateway
+COPY services ./services
+
+# URL factice pour générer les clients Prisma sans connexion réseau
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
+# Compilation TypeScript et génération Prisma
+RUN cd gateway && npm run build
+RUN cd services/auth-service && npx prisma generate && npm run build
+RUN cd services/user-service && npx prisma generate && npm run build
+RUN cd services/equipment-service && npx prisma generate && npm run build
+RUN cd services/assignment-service && npx prisma generate && npm run build
+RUN cd services/inventory-service && npx prisma generate && npm run build
+RUN cd services/audit-service && npx prisma generate && npm run build
+
+# ==========================================
+# Étape 2 : Image finale de production supervisée
+# ==========================================
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Outils système requis pour l'orchestration et le healthcheck
+RUN apk add --no-cache bash curl
+
+# Copie de l'ensemble des modules compilés
+COPY --from=builder /app/gateway /app/gateway
+COPY --from=builder /app/services /app/services
+
+# Script superviseur de démarrage
+COPY scripts/start-render.sh /app/scripts/start-render.sh
+RUN chmod +x /app/scripts/start-render.sh
+
+# Exposer le port public attendu par Render (configurable via $PORT)
+EXPOSE 4000 10000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -f http://localhost:${PORT:-4000}/health || exit 1
+
+ENTRYPOINT ["/bin/bash", "/app/scripts/start-render.sh"]

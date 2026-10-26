@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
 
   # ==================== INFRASTRUCTURE ====================
@@ -8,7 +6,7 @@ services:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"
+      - "6672:5672"
       - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: admin
@@ -16,7 +14,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -105,6 +103,9 @@ services:
     container_name: auth-service
     env_file:
       - ../services/auth-service/.env.docker
+    environment:
+      # L'audit des connexions passe par la route interne d'audit-service (secret partagé)
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?INTERNAL_SERVICE_TOKEN est obligatoire (secret partagé entre services)}
     ports:
       - "4001:4001"
     depends_on:
@@ -120,6 +121,13 @@ services:
     container_name: user-service
     env_file:
       - ../services/user-service/.env.docker
+    environment:
+      # Appel HTTP pour refuser la suppression d un poste ayant des affectations actives
+      ASSIGNMENT_SERVICE_URL: http://assignment-service:4004/api
+      AUDIT_SERVICE_URL: http://audit-service:4006
+      # Lecture et modification du rôle / de l'état des comptes (routes internes, secret partagé)
+      AUTH_SERVICE_URL: http://auth-service:4001
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?INTERNAL_SERVICE_TOKEN est obligatoire (secret partagé entre services)}
     ports:
       - "4002:4002"
     volumes:
@@ -137,6 +145,12 @@ services:
     container_name: equipment-service
     env_file:
       - ../services/equipment-service/.env.docker
+    environment:
+      # Affectation automatique à l'import : lecture des utilisateurs puis affectation groupée
+      USER_SERVICE_URL: http://user-service:4002/api
+      ASSIGNMENT_SERVICE_URL: http://assignment-service:4004/api
+      # Secret partagé pour la route interne du bénéficiaire (fiche publique) ; à définir dans l'environnement de l'hôte
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?INTERNAL_SERVICE_TOKEN est obligatoire (secret partagé entre services)}
     ports:
       - "4003:4003"
     depends_on:
@@ -153,6 +167,11 @@ services:
     container_name: assignment-service
     env_file:
       - ../services/assignment-service/.env.docker
+    environment:
+      # Audit des affectations (envoi HTTP best-effort)
+      AUDIT_SERVICE_URL: http://audit-service:4006
+      # Secret partagé pour la route interne du bénéficiaire (fiche publique) ; à définir dans l'environnement de l'hôte
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?INTERNAL_SERVICE_TOKEN est obligatoire (secret partagé entre services)}
     ports:
       - "4004:4004"
     depends_on:
@@ -171,6 +190,9 @@ services:
     container_name: inventory-service
     env_file:
       - ../services/inventory-service/.env.docker
+    environment:
+      # Appels vers equipment-service : secret partagé entre services
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?INTERNAL_SERVICE_TOKEN est obligatoire (secret partagé entre services)}
     ports:
       - "4005:4005"
     depends_on:
@@ -188,6 +210,9 @@ services:
     container_name: audit-service
     env_file:
       - ../services/audit-service/.env.docker
+    environment:
+      # Écriture dans le journal réservée aux services porteurs de ce secret
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?INTERNAL_SERVICE_TOKEN est obligatoire (secret partagé entre services)}
     ports:
       - "4006:4006"
     depends_on:
@@ -227,7 +252,7 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "5173:80"
+      - "3000:80"
     depends_on:
       - gateway
     networks:

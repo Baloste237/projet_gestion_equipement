@@ -1,16 +1,21 @@
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "../types/auth.type";
 
-const JWT_SECRET = process.env.JWT_SECRET || "votre_secret_partage_entre_services";
+// Lu à chaque appel, sans valeur de repli : le démarrage échoue si le secret manque (voir server.ts)
+const jwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("Variable d'environnement JWT_SECRET obligatoire");
+  return secret;
+};
 const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || "15m";
 
 export const signAccessToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_EXPIRES_IN as any });
+  return jwt.sign(payload, jwtSecret(), { expiresIn: ACCESS_EXPIRES_IN as any });
 };
 
 export const generateRefreshTokenValue = (): string => {
   // Chaîne aléatoire simple, stockée en base pour permettre la révocation
-  return jwt.sign({ random: Math.random() }, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ random: Math.random() }, jwtSecret(), { expiresIn: "7d" });
 };
 
 export const parseExpiryToDate = (expiresIn: string): Date => {

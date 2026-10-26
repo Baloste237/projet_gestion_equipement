@@ -9,6 +9,9 @@ import env from "./config/env";
 
 const app = express();
 
+// Derrière le proxy de l'hébergeur, la vraie IP du client vient de X-Forwarded-For (sinon tous partagent l'IP du proxy)
+app.set("trust proxy", env.TRUST_PROXY_HOPS);
+
 app.use(helmet());
 app.use(
   cors({

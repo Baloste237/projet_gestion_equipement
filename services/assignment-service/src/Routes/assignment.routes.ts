@@ -1,10 +1,12 @@
 import { Router } from "express";
-import { assignmentController } from "../controllers/assignment.controller";
+import { assignmentController } from "../Controllers/assignment.controller";
 import { validate } from "../middlewares/validate";
 import { authenticate } from "../middlewares/authenticate";
 import { checkPermission } from "../middlewares/check-permission";
+import { internalOnly } from "../middlewares/internal-only";
 import {
   createAssignmentSchema,
+  createBulkAssignmentSchema,
   createTransferSchema,
   createReturnSchema,
 } from "../validators/assignment.validator";
@@ -55,12 +57,78 @@ router.post(
 
 /**
  * @openapi
- * /api/assignments:
- *   get:
- *     summary: Lister toutes les affectations
+ * /api/assignments/bulk:
+ *   post:
+ *     summary: Affecter plusieurs équipements à un même bénéficiaire (tout ou rien)
+ *     description: |
+ *       Affecte de 1 à 200 équipements à un utilisateur, un département ou un poste. Le bénéficiaire doit être actif
+ *       et chaque équipement doit exister et être disponible : sinon **aucune** affectation n'est créée et la réponse
+ *       409 `BULK_ASSIGNMENT_REFUSED` liste chaque équipement refusé (`details`, raison `NOT_FOUND` ou `NOT_AVAILABLE`).
+ *       Les affectations sont enregistrées ensemble ; un équipement ne peut avoir qu'une affectation active
+ *       (conflit : 409 `EQUIPMENT_ALREADY_ASSIGNED`). Si le passage des équipements à ASSIGNED échoue, les affectations
+ *       créées sont supprimées (503). Une entrée d'audit `ASSIGNMENTS_CREATED` est enregistrée pour l'opération.
  *     tags: [Assignments]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [assigneeType, assigneeId, equipmentIds]
+ *             properties:
+ *               assigneeType: { type: string, enum: [USER, DEPARTMENT, POSITION] }
+ *               assigneeId: { type: string, format: uuid }
+ *               equipmentIds:
+ *                 type: array
+ *                 minItems: 1
+ *                 maxItems: 200
+ *                 items: { type: string, format: uuid }
+ *               expectedReturnDate: { type: string, example: "2026-12-31" }
+ *               handoverCondition: { type: string, example: GOOD }
+ *               notes: { type: string }
+ *     responses:
+ *       201:
+ *         description: Affectations créées (count, assignments)
+ *       400:
+ *         description: Liste vide, de plus de 200 équipements, avec doublon, ou données invalides
+ *       401:
+ *         description: Non authentifié
+ *       409:
+ *         description: Équipements refusés (BULK_ASSIGNMENT_REFUSED) ou déjà affecté (EQUIPMENT_ALREADY_ASSIGNED)
+ *       503:
+ *         description: Service équipement ou utilisateur indisponible (rien n'est conservé)
+ */
+router.post(
+  "/bulk",
+  authenticate,
+  checkPermission("assignment:create"),
+  validate(createBulkAssignmentSchema),
+  assignmentController.createBulk
+);
+
+/**
+ * @openapi
+ * /api/assignments:
+ *   get:
+ *     summary: Lister les affectations (filtres optionnels)
+ *     tags: [Assignments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: assigneeType
+ *         required: false
+ *         schema: { type: string, enum: [USER, DEPARTMENT, POSITION] }
+ *       - in: query
+ *         name: assigneeId
+ *         required: false
+ *         schema: { type: string, format: uuid }
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema: { type: string, enum: [ACTIVE, TRANSFERRED, RETURNED] }
  *     responses:
  *       200:
  *         description: Liste des affectations
@@ -73,10 +141,52 @@ router.post(
  *                 data:
  *                   type: array
  *                   items: { $ref: '#/components/schemas/Assignment' }
+ *       400:
+ *         description: Filtres invalides
  *       401:
  *         description: Non authentifié
  */
 router.get("/", authenticate, checkPermission("assignment:read"), assignmentController.getAll);
+
+/**
+ * @swagger
+ * /assignments/active-summary:
+ *   get:
+ *     summary: Affectations actives, sans enrichissement (équipement, type et identifiant de l'assigné)
+ *     tags: [Assignments]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Une entrée par équipement actuellement affecté
+ *       401:
+ *         description: Non authentifié
+ *       403:
+ *         description: Permissions insuffisantes (assignment:read)
+ */
+/**
+ * @swagger
+ * /assignments/internal/active/{equipmentId}:
+ *   get:
+ *     summary: Bénéficiaire actuel d'un équipement (appel de service à service, fiche publique)
+ *     description: Réservé aux services internes par le secret partagé `x-internal-token`. Renvoie uniquement le type et le nom.
+ *     tags: [Assignments]
+ *     parameters:
+ *       - in: path
+ *         name: equipmentId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: "`data` vaut null quand l'équipement n'est pas affecté"
+ *       403:
+ *         description: Secret interne absent ou incorrect
+ */
+router.get("/internal/active/:equipmentId", internalOnly, assignmentController.getActiveAssignee);
+router.post("/internal/purge", internalOnly, assignmentController.purgeAllInternal);
+
+// Déclarée avant « /:id » pour ne pas être prise pour un identifiant
+router.get("/active-summary", authenticate, checkPermission("assignment:read"), assignmentController.getActiveSummary);
 
 /**
  * @openapi

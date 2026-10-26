@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { authService } from "../services/auth.service";
+import { AuthenticatedRequest } from "../middlewares/authenticate";
 
 export const authController = {
   register: async (req: Request, res: Response, next: NextFunction) => {
@@ -27,6 +28,17 @@ export const authController = {
     try {
       await authService.logout(req.body.refreshToken);
       res.status(204).send();
+    } catch (err) { next(err); }
+  },
+
+  verifyPassword: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: { code: "UNAUTHENTICATED", message: "Authentification requise" } });
+      }
+      const result = await authService.verifyPassword(userId, req.body.password);
+      res.status(200).json({ success: true, data: result });
     } catch (err) { next(err); }
   },
 };

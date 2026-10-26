@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EQUIP-CORE - Reporting &amp; Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#1c1b1b",
+                    "on-surface-variant": "#c2c6d6",
+                    "surface-container": "#20201f",
+                    "surface": "#131313",
+                    "on-tertiary": "#00363e",
+                    "on-secondary": "#2c303a",
+                    "tertiary-container": "#009fb4",
+                    "outline-variant": "#424754",
+                    "background": "#131313",
+                    "on-primary-fixed": "#001a42",
+                    "surface-variant": "#353535",
+                    "inverse-surface": "#e5e2e1",
+                    "on-background": "#e5e2e1",
+                    "tertiary": "#2fd9f4",
+                    "on-primary": "#002e6a",
+                    "inverse-on-surface": "#313030",
+                    "outline": "#8c909f",
+                    "tertiary-fixed-dim": "#2fd9f4",
+                    "error-container": "#93000a",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-primary-fixed-variant": "#004395",
+                    "on-tertiary-fixed": "#001f25",
+                    "surface-container-high": "#2a2a2a",
+                    "on-secondary-fixed-variant": "#434751",
+                    "on-secondary-container": "#b5b8c5",
+                    "on-surface": "#e5e2e1",
+                    "secondary": "#c3c6d3",
+                    "secondary-fixed": "#dfe2ef",
+                    "surface-dim": "#131313",
+                    "tertiary-fixed": "#a2eeff",
+                    "on-tertiary-container": "#002f36",
+                    "primary-fixed-dim": "#adc6ff",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-fixed": "#181c25",
+                    "on-primary-container": "#00285d",
+                    "secondary-fixed-dim": "#c3c6d3",
+                    "secondary-container": "#454953",
+                    "on-error": "#690005",
+                    "primary-container": "#4d8eff",
+                    "on-tertiary-fixed-variant": "#004e5a",
+                    "surface-bright": "#393939",
+                    "error": "#ffb4ab",
+                    "surface-tint": "#adc6ff",
+                    "primary-fixed": "#d8e2ff",
+                    "primary": "#adc6ff",
+                    "surface-container-highest": "#353535",
+                    "inverse-primary": "#005ac2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "40px",
+                    "margin": "32px",
+                    "sm": "12px",
+                    "md": "24px",
+                    "base": "8px",
+                    "gutter": "24px",
+                    "xs": "4px",
+                    "xl": "64px"
+            },
+            "fontFamily": {
+                    "label-sm": ["JetBrains Mono"],
+                    "headline-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "label-md": ["JetBrains Mono"],
+                    "display-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "body-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: #0D0D0D;
+            color: #e5e2e1;
+        }
+        /* Custom Scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #131313;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #353535;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #424754;
+        }
+        
+        .chart-grid {
+            background-image: 
+                linear-gradient(to right, #262626 1px, transparent 1px),
+                linear-gradient(to bottom, #262626 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .glass-panel {
+            background: rgba(26, 26, 26, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #333333;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar (Desktop) -->
+<nav class="bg-surface-container-low dark:bg-surface-container-low text-primary dark:text-primary font-label-md text-label-md docked left-0 h-screen w-64 hidden md:flex flex-col border-r border-outline-variant dark:border-outline-variant shadow-none transition-all duration-200 ease-in-out p-md gap-base shrink-0 z-40">
+<div class="mb-lg">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">corporate_fare</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-primary">System Admin</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Global Operations</p>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto space-y-2">
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+                Users
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">lan</span>
+                Departments
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">construction</span>
+                Equipment
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">assignment_ind</span>
+                Assignments
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                Inventory
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">build</span>
+                Maintenance
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+                Audit
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+                Reports
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</div>
+<div class="mt-auto pt-md border-t border-outline-variant space-y-2">
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+                Support
+            </a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Log Out
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-screen overflow-hidden bg-background">
+<!-- TopNavBar (Responsive) -->
+<header class="bg-surface dark:bg-surface text-primary dark:text-primary font-body-md text-body-md docked full-width top-0 sticky z-50 border-b border-outline-variant dark:border-outline-variant shadow-none shrink-0 flex justify-between items-center w-full px-margin h-16">
+<div class="flex items-center gap-md">
+<div class="md:hidden">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface dark:text-on-surface">EQUIP-CORE</span>
+</div>
+<div class="hidden md:flex items-center bg-surface-container-low border border-outline-variant rounded-full px-sm py-xs w-64 focus-within:border-primary transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none text-body-sm text-on-surface focus:ring-0 w-full placeholder-on-surface-variant outline-none ml-2" placeholder="Search reports..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="hidden md:flex items-center gap-xs bg-surface-variant border border-outline-variant text-on-surface px-md py-xs rounded-lg hover:bg-surface-container-high transition-colors font-label-md text-label-md">
+                    Quick Export
+                </button>
+<button class="flex items-center gap-xs bg-primary text-on-primary px-md py-xs rounded-lg hover:bg-primary-container transition-colors font-label-md text-label-md">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                    Create Asset
+                </button>
+<div class="flex items-center gap-sm ml-sm border-l border-outline-variant pl-sm">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors rounded-full active:scale-95 duration-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors rounded-full active:scale-95 duration-100 hidden md:block">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant overflow-hidden cursor-pointer ml-xs">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A macro photography shot of a high-end, machined metal industrial component, perhaps a bearing or gear, in deep shadow with a sliver of cool blue light highlighting its precision edge. The mood is technical, corporate, and precise, aligning with a dark-mode enterprise UI. Dark background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmMb1HHxy2P4nJ4CIhAIO9TEldwW5IMqWjpI0tQb1X1PUYgupVBgIcg7_sPKtqLjSmgeJ8L8Q6usfBuLADrl9CFLqo1j9MX9Q7-0gRR6fe4KgjRPDnMR_9xuiUD2vwYaxMf-nnndJd7_f75Kwopb0tDbr71WEQZq59LxBPe9ukc7Gl71CmdRKJVvSmWBnyQ-6dJeaO4Xu5pBmChQMeqoBoFlkAWD8ImI6l6o2_LJmspG2fQ86PcPRl"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Scrollable Canvas -->
+<main class="flex-1 overflow-y-auto p-margin md:px-margin px-md pb-xl md:pb-margin custom-scrollbar">
+<div class="max-w-7xl mx-auto space-y-md">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-lg">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Analytics Hub</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs max-w-2xl">Design, analyze, and export operational metrics across the asset lifecycle.</p>
+</div>
+<div class="flex gap-sm">
+<div class="flex items-center bg-surface-container-low border border-outline-variant rounded-lg p-xs">
+<button class="px-md py-xs rounded text-on-surface bg-surface-variant font-label-sm text-label-sm">7D</button>
+<button class="px-md py-xs rounded text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm">30D</button>
+<button class="px-md py-xs rounded text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm">YTD</button>
+</div>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Pre-built Reports Section -->
+<div class="col-span-1 md:col-span-4 flex flex-col gap-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Standard Reports</h3>
+<div class="glass-panel rounded-lg p-md cursor-pointer hover:border-primary/50 transition-colors group">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-surface-container rounded-lg group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-on-primary-container">attach_money</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">arrow_forward</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Monthly Asset Cost</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Depreciation and operational expense tracking.</p>
+</div>
+<div class="glass-panel rounded-lg p-md cursor-pointer hover:border-primary/50 transition-colors group">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-surface-container rounded-lg group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-tertiary group-hover:text-on-primary-container">speed</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">arrow_forward</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Maintenance Efficiency</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">MTTR, MTBF, and technician utilization rates.</p>
+</div>
+<div class="glass-panel rounded-lg p-md cursor-pointer hover:border-primary/50 transition-colors group">
+<div class="flex justify-between items-start mb-md">
+<div class="p-sm bg-surface-container rounded-lg group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-on-primary-container">sync</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">arrow_forward</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Asset Lifecycle</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Procurement to decommission timeline analysis.</p>
+</div>
+</div>
+<!-- Interactive Chart Area -->
+<div class="col-span-1 md:col-span-8 glass-panel rounded-lg flex flex-col overflow-hidden min-h-[500px]">
+<!-- Chart Header / Toolbar -->
+<div class="p-md border-b border-[#333333] flex flex-wrap justify-between items-center gap-sm bg-[#131313]/50">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">bar_chart</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Custom View: Opex vs Capex</h3>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded transition-colors" title="Download CSV">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded transition-colors" title="Filter">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded transition-colors" title="More Options">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Chart Canvas (Simulated) -->
+<div class="flex-1 relative chart-grid p-md flex flex-col justify-end">
+<!-- Y Axis Labels -->
+<div class="absolute left-md top-md bottom-xl flex flex-col justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>$100k</span>
+<span>$75k</span>
+<span>$50k</span>
+<span>$25k</span>
+<span>0</span>
+</div>
+<!-- Chart Bars Simulation -->
+<div class="pl-xl flex items-end justify-around w-full h-[80%] gap-sm md:gap-md z-10">
+<div class="w-full max-w-[60px] bg-primary/20 border border-primary/50 rounded-t-sm h-[40%] hover:bg-primary/40 transition-colors relative group cursor-crosshair">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface border border-outline-variant px-sm py-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-label-sm text-label-sm text-on-surface pointer-events-none">$40,210</div>
+</div>
+<div class="w-full max-w-[60px] bg-primary/20 border border-primary/50 rounded-t-sm h-[65%] hover:bg-primary/40 transition-colors relative group cursor-crosshair">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface border border-outline-variant px-sm py-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-label-sm text-label-sm text-on-surface pointer-events-none">$65,800</div>
+</div>
+<div class="w-full max-w-[60px] bg-tertiary/20 border border-tertiary/50 rounded-t-sm h-[30%] hover:bg-tertiary/40 transition-colors relative group cursor-crosshair">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface border border-outline-variant px-sm py-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-label-sm text-label-sm text-on-surface pointer-events-none">$30,500</div>
+</div>
+<div class="w-full max-w-[60px] bg-primary/20 border border-primary/50 rounded-t-sm h-[85%] hover:bg-primary/40 transition-colors relative group cursor-crosshair">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface border border-outline-variant px-sm py-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-label-sm text-label-sm text-on-surface pointer-events-none">$85,120</div>
+</div>
+<div class="w-full max-w-[60px] bg-primary/20 border border-primary/50 rounded-t-sm h-[55%] hover:bg-primary/40 transition-colors relative group cursor-crosshair">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface border border-outline-variant px-sm py-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-label-sm text-label-sm text-on-surface pointer-events-none">$55,400</div>
+</div>
+<div class="w-full max-w-[60px] bg-secondary/20 border border-secondary/50 rounded-t-sm h-[90%] hover:bg-secondary/40 transition-colors relative group cursor-crosshair">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface border border-outline-variant px-sm py-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-label-sm text-label-sm text-on-surface pointer-events-none">$90,000</div>
+</div>
+</div>
+<!-- X Axis Labels -->
+<div class="pl-xl mt-sm flex justify-around w-full text-on-surface-variant font-label-sm text-label-sm border-t border-[#333333] pt-sm">
+<span>Jan</span>
+<span>Feb</span>
+<span>Mar</span>
+<span>Apr</span>
+<span>May</span>
+<span>Jun</span>
+</div>
+</div>
+<!-- Drag and Drop Metrics Builder Panel -->
+<div class="bg-surface-container border-t border-[#333333] p-md">
+<div class="flex items-center gap-sm mb-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">drag_indicator</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Builder (Drag &amp; Drop Metrics)</span>
+</div>
+<div class="flex flex-wrap gap-sm">
+<!-- Active Metric (X-Axis) -->
+<div class="flex items-center gap-xs bg-surface border border-[#333333] rounded px-sm py-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">X-Axis:</span>
+<span class="font-label-md text-label-md text-on-surface">Time (Months)</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant cursor-pointer hover:text-error ml-xs">close</span>
+</div>
+<!-- Active Metric (Y-Axis) -->
+<div class="flex items-center gap-xs bg-primary-container/20 border border-primary/30 rounded px-sm py-xs">
+<span class="font-label-sm text-label-sm text-primary">Y-Axis:</span>
+<span class="font-label-md text-label-md text-on-surface">Total Cost</span>
+<span class="material-symbols-outlined text-[16px] text-primary cursor-pointer hover:text-error ml-xs">close</span>
+</div>
+<!-- Available Metric (Draggable) -->
+<div class="flex items-center gap-xs bg-surface border border-dashed border-outline-variant rounded px-sm py-xs cursor-move hover:border-primary/50 transition-colors opacity-60 hover:opacity-100">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">drag_indicator</span>
+<span class="font-label-md text-label-md text-on-surface">Downtime Hrs</span>
+</div>
+<!-- Available Metric (Draggable) -->
+<div class="flex items-center gap-xs bg-surface border border-dashed border-outline-variant rounded px-sm py-xs cursor-move hover:border-primary/50 transition-colors opacity-60 hover:opacity-100">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">drag_indicator</span>
+<span class="font-label-md text-label-md text-on-surface">Depreciation</span>
+</div>
+<div class="flex items-center justify-center w-8 h-8 rounded border border-dashed border-outline-variant hover:border-primary/50 cursor-pointer transition-colors ml-auto">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">add</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- BottomNavBar (Mobile) -->
+<nav class="bg-surface-container-high dark:bg-surface-container-high text-primary dark:text-primary font-label-sm text-label-sm docked full-width bottom-0 md:hidden z-50 border-t border-outline-variant shadow-lg fixed w-full flex justify-around py-sm">
+<a class="flex flex-col items-center gap-1 text-on-surface-variant dark:text-on-surface-variant p-xs rounded hover:bg-surface-variant transition-colors active:scale-90 duration-75" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant dark:text-on-surface-variant p-xs rounded hover:bg-surface-variant transition-colors active:scale-90 duration-75" href="#">
+<span class="material-symbols-outlined">construction</span>
+<span>Assets</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant dark:text-on-surface-variant p-xs rounded hover:bg-surface-variant transition-colors active:scale-90 duration-75" href="#">
+<span class="material-symbols-outlined">build</span>
+<span>Fix</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary dark:text-primary p-xs rounded hover:bg-surface-variant transition-colors active:scale-90 duration-75" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">history</span>
+<span>Logs</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant dark:text-on-surface-variant p-xs rounded hover:bg-surface-variant transition-colors active:scale-90 duration-75" href="#">
+<span class="material-symbols-outlined">menu</span>
+<span>More</span>
+</a>
+</nav>
+</body></html>
